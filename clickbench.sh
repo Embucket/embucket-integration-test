@@ -165,7 +165,7 @@ cb_copy_into_partitioned_n_file() {
   snow sql -q "COPY INTO demo.embucket.hits FROM 'file://$(pwd)/clickbench/partitioned/hits_$n.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
-clickbench_partitioned() {
+clickbench_setup_partitioned() {
   cb_create_table
   cb_copy_into_partitioned
 }
@@ -186,21 +186,6 @@ clickbench_spark() {
 
 clickbench_spark_partitioned() {
   docker exec spark-iceberg spark-submit /home/iceberg/create_iceberg_partitioned.py
-}
-
-benchmark() {
-  echo "query_number,execution_time_seconds" >clickbench/results.csv
-  query_num=1
-  cat clickbench/queries.sql | while read -r query; do
-    if [[ -n "$query" && ! "$query" =~ ^[[:space:]]*$ ]]; then
-      start_time=$(date +%s.%N)
-      snow sql -q "$query"
-      end_time=$(date +%s.%N)
-      execution_time=$(awk "BEGIN {print $end_time - $start_time}")
-      echo "$query_num,$execution_time" >>clickbench/results.csv
-      query_num=$((query_num + 1))
-    fi
-  done
 }
 
 activate

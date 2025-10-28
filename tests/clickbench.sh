@@ -4,7 +4,7 @@ source ./clickbench.sh
 up
 setup
 
-clickbench_partitioned
+clickbench_setup_partitioned
 
 echo "query_number,execution_time_seconds" >clickbench/results.csv
 query_num=1
@@ -19,4 +19,4 @@ cat clickbench/queries.sql | while read -r query; do
   fi
 done
 
-# down
+down
