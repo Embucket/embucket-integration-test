@@ -44,15 +44,16 @@ All data is stored in the `storage/` directory, which is mounted into Docker con
 3. Load benchmark data (choose one):
 
    **ClickBench (web analytics benchmark):**
+
    ```bash
    sh clickbench.sh clickbench_partitioned
    ```
 
    **TPC-H (decision support benchmark):**
+
    ```bash
-   sh tpch.sh data
-   sh tpch.sh schema
-   sh tpch.sh load 10
+   # First, manually place TPC-H parquet files in storage/tpch/100/
+   sh tpch.sh tpch_setup
    ```
 
 ## Core Commands
@@ -85,24 +86,33 @@ All data is stored in the `storage/` directory, which is mounted into Docker con
 
 ### tpch.sh Commands
 
-- `sh tpch.sh data` - Download TPC-H data (scale factor 10 and 100)
-- `sh tpch.sh schema` - Create TPC-H table schemas
-- `sh tpch.sh load [scale_factor]` - Load TPC-H data (scale factor: 10 or 100)
-- `sh tpch.sh clean` - Clean up TPC-H tables
-- `sh tpch.sh benchmark` - Run all 22 TPC-H queries and measure performance
+- `sh tpch.sh volume_local_file` - Create local file-based external volume
+- `sh tpch.sh tpch_create_tables` - Create all TPC-H table schemas
+- `sh tpch.sh tpch_copy_into_tables` - Load data from mounted storage (/storage/tpch/100/)
+- `sh tpch.sh tpch_copy_into_tables_file` - Load data from local filesystem (tpch/100/)
+- `sh tpch.sh tpch_setup` - Create tables and load data (complete setup)
+- `sh tpch.sh benchmark` - Run TPC-H queries from tpch/queries/ and measure performance
 
-**TPC-H Scale Factors:**
-- **Scale 10** - Approximately 10GB of data, suitable for quick testing
-- **Scale 100** - Approximately 100GB of data, for comprehensive benchmarking
+**Data Preparation:**
+TPC-H data must be manually placed in the `storage/tpch/100/` or `tpch/100/` directory as Parquet files. The script expects these files:
+
+- customer.parquet
+- orders.parquet
+- lineitem.parquet
+- nation.parquet
+- region.parquet
+- part.parquet
+- supplier.parquet
+- partsupp.parquet
 
 **Example Usage:**
-```bash
-# Download TPC-H data
-sh tpch.sh data
 
-# Create schemas and load scale 10 data
-sh tpch.sh schema
-sh tpch.sh load 10
+```bash
+# Ensure TPC-H data files are in place
+# (manually copy parquet files to storage/tpch/100/ or tpch/100/)
+
+# Create tables and load data
+sh tpch.sh tpch_setup
 
 # Run benchmark
 sh tpch.sh benchmark
@@ -226,6 +236,7 @@ Defines all services (Embucket, MinIO, Toxiproxy, MC) with port mappings and vol
 ### s3.sh
 
 Sets environment variables for S3/MinIO access:
+
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_REGION`
@@ -237,6 +248,7 @@ Source this file with `. ./s3.sh` when needed for manual S3 operations.
 For detailed information about the test suite and available test scripts, see [TESTING.md](TESTING.md).
 
 Available test files:
+
 - `tests/example.sh` - Basic integration test
 - `tests/clickbench.sh` - ClickBench benchmark
 - `tests/clickbench_file.sh` - File-based storage test
