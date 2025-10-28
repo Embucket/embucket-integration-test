@@ -181,11 +181,11 @@ clickbench_single() {
 }
 
 clickbench_spark() {
-  podman exec spark-iceberg spark-submit /home/iceberg/create_iceberg.py
+  docker exec spark-iceberg spark-submit /home/iceberg/create_iceberg.py
 }
 
 clickbench_spark_partitioned() {
-  podman exec spark-iceberg spark-submit /home/iceberg/create_iceberg_partitioned.py
+  docker exec spark-iceberg spark-submit /home/iceberg/create_iceberg_partitioned.py
 }
 
 benchmark() {

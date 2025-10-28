@@ -7,11 +7,11 @@ install_snowflake() {
 }
 
 up() {
-  podman compose up -d
+  docker compose up -d
 }
 
 down() {
-  podman compose down -v
+  docker compose down -v
 }
 
 volume() {
