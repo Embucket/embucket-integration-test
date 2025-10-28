@@ -1,13 +1,25 @@
-# Spark Integration Test
+# Embucket Integration Test Framework
 
-This project provides a test framework for running integration tests between Snowflake and Apache Spark using ClickBench data.
+This project provides a comprehensive test framework for running integration tests and benchmarks on Embucket (a Snowflake-compatible database) using industry-standard datasets: ClickBench and TPC-H.
 
 ## Overview
 
-The test framework consists of two main scripts:
+The test framework consists of three main scripts:
 
-- `make.sh` - Core utilities for Snowflake setup and data operations
+- `make.sh` - Core utilities for database setup, Docker management, and data operations
 - `clickbench.sh` - ClickBench dataset management and benchmarking
+- `tpch.sh` - TPC-H dataset management and benchmarking
+
+## Architecture
+
+The framework uses Docker Compose to orchestrate the following services:
+
+- **Embucket** (port 3000) - The main database being tested, Snowflake-compatible interface
+- **MinIO** (ports 9000, 9001) - S3-compatible object storage for testing cloud data integration
+- **Toxiproxy** (port 8474) - Network proxy for simulating latency and failures
+- **MC** (MinIO Client) - Automated MinIO bucket setup
+
+All data is stored in the `storage/` directory, which is mounted into Docker containers and gitignored.
 
 ## Prerequisites
 
@@ -23,16 +35,24 @@ The test framework consists of two main scripts:
    sh make.sh up
    ```
 
-2. Initialize database, schema setup:
+2. Initialize database and schema:
 
    ```bash
    sh make.sh setup
    ```
 
-3. Load ClickBench data:
+3. Load benchmark data (choose one):
 
+   **ClickBench (web analytics benchmark):**
    ```bash
    sh clickbench.sh clickbench_partitioned
+   ```
+
+   **TPC-H (decision support benchmark):**
+   ```bash
+   sh tpch.sh data
+   sh tpch.sh schema
+   sh tpch.sh load 10
    ```
 
 ## Core Commands
@@ -62,6 +82,31 @@ The test framework consists of two main scripts:
 - `sh clickbench.sh clickbench_single` - Full single file setup
 - `sh clickbench.sh clickbench_spark_partitioned` - Create Spark Iceberg table
 - `sh clickbench.sh benchmark` - Run ClickBench queries and measure performance
+
+### tpch.sh Commands
+
+- `sh tpch.sh data` - Download TPC-H data (scale factor 10 and 100)
+- `sh tpch.sh schema` - Create TPC-H table schemas
+- `sh tpch.sh load [scale_factor]` - Load TPC-H data (scale factor: 10 or 100)
+- `sh tpch.sh clean` - Clean up TPC-H tables
+- `sh tpch.sh benchmark` - Run all 22 TPC-H queries and measure performance
+
+**TPC-H Scale Factors:**
+- **Scale 10** - Approximately 10GB of data, suitable for quick testing
+- **Scale 100** - Approximately 100GB of data, for comprehensive benchmarking
+
+**Example Usage:**
+```bash
+# Download TPC-H data
+sh tpch.sh data
+
+# Create schemas and load scale 10 data
+sh tpch.sh schema
+sh tpch.sh load 10
+
+# Run benchmark
+sh tpch.sh benchmark
+```
 
 ## Creating Test Files
 
@@ -156,6 +201,47 @@ sh make.sh equality demo.embucket.hits demo.spark.hits
 # Cleanup
 sh make.sh down
 ```
+
+## Configuration Files
+
+### config.toml
+
+Snowflake CLI configuration pointing to the local Embucket instance:
+
+```toml
+[connections.dev]
+host = "localhost"
+port = 3000
+user = "user"
+password = "password"
+database = "demo"
+schema = "embucket"
+warehouse = "warehouse"
+```
+
+### docker-compose.yaml
+
+Defines all services (Embucket, MinIO, Toxiproxy, MC) with port mappings and volume mounts to the `storage/` directory.
+
+### s3.sh
+
+Sets environment variables for S3/MinIO access:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+
+Source this file with `. ./s3.sh` when needed for manual S3 operations.
+
+## Test Suite
+
+For detailed information about the test suite and available test scripts, see [TESTING.md](TESTING.md).
+
+Available test files:
+- `tests/example.sh` - Basic integration test
+- `tests/clickbench.sh` - ClickBench benchmark
+- `tests/clickbench_file.sh` - File-based storage test
+- `tests/tpch.sh` - TPC-H benchmark
+- `tests/merge.sh` - MERGE operations test
 
 ## Environment Variables
 
