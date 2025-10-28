@@ -2,5 +2,6 @@ clickbench/single
 clickbench/partitioned
 tpch/100
 venv/
+storage/
 .cli_version.cache
 
