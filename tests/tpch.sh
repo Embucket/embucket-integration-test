@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source ./make.sh
 source ./tpch.sh
 

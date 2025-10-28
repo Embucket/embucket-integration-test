@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export SNOWFLAKE_HOME=$(pwd)
 
 source ./venv.sh
