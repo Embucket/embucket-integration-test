@@ -105,7 +105,7 @@ snowsql() {
 }
 
 sparksql() {
-  podman exec spark-iceberg spark-sql -e "$1"
+  docker exec spark-iceberg spark-sql -e "$1"
 }
 
 equality() {
