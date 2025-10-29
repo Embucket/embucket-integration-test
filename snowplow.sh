@@ -427,6 +427,35 @@ sp_detect_quarantined_sessions() {
 
 sp_create_sessions_this_run() {
   snow sql -q "
+    CREATE OR REPLACE TABLE demo.embucket.snowplow_web_base_sessions_this_run AS
+    SELECT
+      s.session_identifier,
+      s.user_identifier,
+      s.start_tstamp,
+      -- Cap end_tstamp to upper_limit when backfilling to avoid processing future events
+      CASE
+        WHEN s.end_tstamp > limits.upper_limit
+        THEN limits.upper_limit
+        ELSE s.end_tstamp
+      END as end_tstamp
+    FROM demo.embucket.snowplow_web_base_sessions_lifecycle_manifest s
+    CROSS JOIN demo.embucket.snowplow_web_base_new_event_limits limits
+    WHERE
+      -- General window: session start must be after (lower_limit - max_session_days)
+      -- This captures sessions that started before the window but may extend into it
+      s.start_tstamp >= DATEADD(day, -3, limits.lower_limit)
+      AND s.start_tstamp <= limits.upper_limit
+      -- Exclude sessions completely outside the window
+      -- (either start after upper_limit OR end before lower_limit)
+      AND NOT (
+        s.start_tstamp > limits.upper_limit
+        OR s.end_tstamp < limits.lower_limit
+      );
+  "
+}
+
+sp_build_sessions_from_events() {
+  snow sql -q "
     CREATE OR REPLACE TABLE demo.embucket.snowplow_web_sessions_this_run AS
     WITH session_firsts AS (
       -- Get first event attributes for each session
@@ -490,6 +519,11 @@ sp_create_sessions_this_run() {
         CONCAT(COALESCE(dvce_screenwidth, ''), 'x', COALESCE(dvce_screenheight, '')) AS screen_resolution
       FROM demo.embucket.events
       WHERE domain_sessionid IS NOT NULL
+        -- Only process events for sessions in sessions_this_run
+        AND domain_sessionid IN (
+          SELECT session_identifier
+          FROM demo.embucket.snowplow_web_base_sessions_this_run
+        )
       QUALIFY ROW_NUMBER() OVER (
         PARTITION BY domain_sessionid
         ORDER BY collector_tstamp, dvce_created_tstamp, event_id
@@ -516,6 +550,11 @@ sp_create_sessions_this_run() {
       FROM demo.embucket.events
       WHERE domain_sessionid IS NOT NULL
         AND event = 'page_view'
+        -- Only process events for sessions in sessions_this_run
+        AND domain_sessionid IN (
+          SELECT session_identifier
+          FROM demo.embucket.snowplow_web_base_sessions_this_run
+        )
       QUALIFY ROW_NUMBER() OVER (
         PARTITION BY domain_sessionid
         ORDER BY collector_tstamp DESC, dvce_created_tstamp DESC, event_id DESC
@@ -532,6 +571,11 @@ sp_create_sessions_this_run() {
         TIMESTAMPDIFF(SECOND, MIN(collector_tstamp), MAX(collector_tstamp)) AS absolute_time_in_s
       FROM demo.embucket.events
       WHERE domain_sessionid IS NOT NULL
+        -- Only process events for sessions in sessions_this_run
+        AND domain_sessionid IN (
+          SELECT session_identifier
+          FROM demo.embucket.snowplow_web_base_sessions_this_run
+        )
       GROUP BY domain_sessionid
     )
     SELECT

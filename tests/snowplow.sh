@@ -56,10 +56,16 @@ echo "--- Updating incremental manifest ---"
 sp_update_incremental_manifest
 snowsql "SELECT model, last_success FROM demo.embucket.snowplow_web_incremental_manifest"
 
-# Build sessions from events
+# Select sessions to process this run
 echo ""
-echo "--- Building sessions from events ---"
+echo "--- Selecting sessions to process (from lifecycle manifest) ---"
 sp_create_sessions_this_run
+snowsql "SELECT COUNT(*) as base_sessions_this_run_count FROM demo.embucket.snowplow_web_base_sessions_this_run"
+
+# Build session records from events
+echo ""
+echo "--- Aggregating events into session records ---"
+sp_build_sessions_from_events
 snowsql "SELECT COUNT(*) as sessions_this_run_count FROM demo.embucket.snowplow_web_sessions_this_run"
 
 # Merge sessions into final table
@@ -106,10 +112,16 @@ echo "--- Updating incremental manifest ---"
 sp_update_incremental_manifest
 snowsql "SELECT model, last_success FROM demo.embucket.snowplow_web_incremental_manifest"
 
-# Build sessions from events
+# Select sessions to process this run
 echo ""
-echo "--- Building sessions from events (incremental) ---"
+echo "--- Selecting sessions to process (incremental) ---"
 sp_create_sessions_this_run
+snowsql "SELECT COUNT(*) as base_sessions_this_run_count FROM demo.embucket.snowplow_web_base_sessions_this_run"
+
+# Build session records from events
+echo ""
+echo "--- Aggregating events into session records (incremental) ---"
+sp_build_sessions_from_events
 snowsql "SELECT COUNT(*) as sessions_this_run_count FROM demo.embucket.snowplow_web_sessions_this_run"
 
 # Merge sessions into final table
