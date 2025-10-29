@@ -628,6 +628,168 @@ sp_create_sessions_this_run() {
   "
 }
 
+sp_create_sessions_expected() {
+  snow sql -q "CREATE TABLE demo.embucket.snowplow_web_sessions_expected (
+    -- Core identifiers (1-5)
+    app_id VARCHAR(255),
+    platform VARCHAR(255),
+    domain_sessionid VARCHAR(128) PRIMARY KEY,
+    original_domain_sessionid VARCHAR(128),
+    domain_sessionidx INTEGER,
+
+    -- Timestamps (6-7)
+    start_tstamp TIMESTAMP,
+    end_tstamp TIMESTAMP,
+
+    -- User identifiers (8-12)
+    user_id VARCHAR(255),
+    domain_userid VARCHAR(128),
+    original_domain_userid VARCHAR(128),
+    stitched_user_id VARCHAR(255),
+    network_userid VARCHAR(128),
+
+    -- Engagement metrics (13-18)
+    page_views INTEGER,
+    engaged_time_in_s INTEGER,
+    event_counts VARCHAR(10000),
+    total_events INTEGER,
+    is_engaged BOOLEAN,
+    absolute_time_in_s INTEGER,
+
+    -- First page attributes (19-25)
+    first_page_title VARCHAR(2000),
+    first_page_url TEXT,
+    first_page_urlscheme VARCHAR(16),
+    first_page_urlhost VARCHAR(255),
+    first_page_urlpath VARCHAR(3000),
+    first_page_urlquery VARCHAR(6000),
+    first_page_urlfragment VARCHAR(3000),
+
+    -- Last page attributes (26-32)
+    last_page_title VARCHAR(2000),
+    last_page_url TEXT,
+    last_page_urlscheme VARCHAR(16),
+    last_page_urlhost VARCHAR(255),
+    last_page_urlpath VARCHAR(3000),
+    last_page_urlquery VARCHAR(6000),
+    last_page_urlfragment VARCHAR(3000),
+
+    -- Referrer attributes (33-41)
+    referrer TEXT,
+    refr_urlscheme VARCHAR(16),
+    refr_urlhost VARCHAR(255),
+    refr_urlpath VARCHAR(6000),
+    refr_urlquery VARCHAR(6000),
+    refr_urlfragment VARCHAR(3000),
+    refr_medium VARCHAR(25),
+    refr_source VARCHAR(50),
+    refr_term VARCHAR(255),
+
+    -- Marketing parameters (42-50)
+    mkt_medium VARCHAR(255),
+    mkt_source VARCHAR(255),
+    mkt_term VARCHAR(255),
+    mkt_content VARCHAR(500),
+    mkt_campaign VARCHAR(255),
+    mkt_clickid VARCHAR(255),
+    mkt_network VARCHAR(64),
+    mkt_source_platform VARCHAR(255),
+    default_channel_group VARCHAR(255),
+
+    -- Geo attributes (51-65)
+    geo_country VARCHAR(2),
+    geo_region VARCHAR(3),
+    geo_region_name VARCHAR(100),
+    geo_city VARCHAR(75),
+    geo_zipcode VARCHAR(15),
+    geo_latitude DOUBLE PRECISION,
+    geo_longitude DOUBLE PRECISION,
+    geo_timezone VARCHAR(64),
+    geo_country_name VARCHAR(255),
+    geo_continent VARCHAR(255),
+    last_geo_country VARCHAR(2),
+    last_geo_region_name VARCHAR(100),
+    last_geo_city VARCHAR(75),
+    last_geo_country_name VARCHAR(255),
+    last_geo_continent VARCHAR(255),
+
+    -- Device/Browser attributes (66-73)
+    user_ipaddress VARCHAR(128),
+    useragent VARCHAR(1000),
+    br_renderengine VARCHAR(50),
+    br_lang VARCHAR(255),
+    br_lang_name VARCHAR(255),
+    last_br_lang VARCHAR(255),
+    last_br_lang_name VARCHAR(255),
+    os_timezone VARCHAR(255),
+
+    -- IAB enrichment (74-77)
+    category VARCHAR(255),
+    primary_impact VARCHAR(255),
+    reason VARCHAR(255),
+    spider_or_robot BOOLEAN,
+
+    -- UA Parser enrichment (78-89)
+    useragent_family VARCHAR(255),
+    useragent_major VARCHAR(50),
+    useragent_minor VARCHAR(50),
+    useragent_patch VARCHAR(50),
+    useragent_version VARCHAR(255),
+    os_family VARCHAR(255),
+    os_major VARCHAR(50),
+    os_minor VARCHAR(50),
+    os_patch VARCHAR(50),
+    os_patch_minor VARCHAR(50),
+    os_version VARCHAR(255),
+    device_family VARCHAR(255),
+
+    -- YAUAA enrichment (90-111)
+    device_class VARCHAR(255),
+    device_category VARCHAR(255),
+    screen_resolution VARCHAR(50),
+    agent_class VARCHAR(255),
+    agent_name VARCHAR(255),
+    agent_name_version VARCHAR(255),
+    agent_name_version_major VARCHAR(255),
+    agent_version VARCHAR(255),
+    agent_version_major VARCHAR(255),
+    device_brand VARCHAR(255),
+    device_name VARCHAR(255),
+    device_version VARCHAR(255),
+    layout_engine_class VARCHAR(255),
+    layout_engine_name VARCHAR(255),
+    layout_engine_name_version VARCHAR(255),
+    layout_engine_name_version_major VARCHAR(255),
+    layout_engine_version VARCHAR(255),
+    layout_engine_version_major VARCHAR(255),
+    operating_system_class VARCHAR(255),
+    operating_system_name VARCHAR(255),
+    operating_system_name_version VARCHAR(255),
+    operating_system_version VARCHAR(255),
+
+    -- Conversion metrics (112-119)
+    cv_view_page_volume INTEGER,
+    cv_view_page_events VARCHAR(10000),
+    cv_view_page_values VARCHAR(10000),
+    cv_view_page_total DOUBLE PRECISION,
+    cv_view_page_first_conversion TIMESTAMP,
+    cv_view_page_converted BOOLEAN,
+    cv__all_volume INTEGER,
+    cv__all_total DOUBLE PRECISION,
+
+    -- Passthrough fields (120-121)
+    event_id VARCHAR(36),
+    event_id2 VARCHAR(36)
+  );"
+}
+
+sp_load_sessions_expected() {
+  snow sql -q "COPY INTO demo.embucket.snowplow_web_sessions_expected
+    FROM 'file:///storage/snowplow/expected/snowflake/snowplow_web_sessions_expected.csv'
+    STORAGE_INTEGRATION = local
+    FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1, FIELD_OPTIONALLY_ENCLOSED_BY = '\"');"
+}
+
 sp_merge_sessions() {
   snow sql -q "
     MERGE INTO demo.embucket.snowplow_web_sessions AS target

@@ -79,6 +79,7 @@ services:
       - ./clickbench/single:/storage/clickbench/single
       - ./tpch/100:/storage/tpch/100
       - ./snowplow/source:/storage/snowplow/source
+      - ./snowplow/expected:/storage/snowplow/expected
   minio:
     image: minio/minio
     container_name: minio
