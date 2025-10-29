@@ -239,11 +239,7 @@ sp_create_sessions_lifecycle_manifest() {
 
 sp_populate_new_event_limits() {
   snow sql -q "
-    -- Clear existing limits
-    DELETE FROM demo.embucket.snowplow_web_base_new_event_limits;
-
-    -- Calculate time window for this run
-    INSERT INTO demo.embucket.snowplow_web_base_new_event_limits
+    CREATE OR REPLACE TABLE demo.embucket.snowplow_web_base_new_event_limits AS
     SELECT
       CASE
         -- First run: use earliest event timestamp
