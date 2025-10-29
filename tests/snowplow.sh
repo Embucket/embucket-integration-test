@@ -11,6 +11,7 @@ sp_create_incremental_manifest
 sp_create_quarantined_sessions
 sp_create_new_event_limits
 sp_create_sessions_lifecycle_manifest
+sp_create_sessions
 
 # ============================================
 # Batch 1: Initial Load
@@ -49,6 +50,19 @@ echo "--- Updating incremental manifest ---"
 sp_update_incremental_manifest
 snowsql "SELECT model, last_success FROM demo.embucket.snowplow_web_incremental_manifest"
 
+# Build sessions from events
+echo ""
+echo "--- Building sessions from events ---"
+sp_create_sessions_this_run
+snowsql "SELECT COUNT(*) as sessions_this_run_count FROM demo.embucket.snowplow_web_sessions_this_run"
+
+# Merge sessions into final table
+echo ""
+echo "--- Merging sessions into final table ---"
+sp_merge_sessions
+snowsql "SELECT COUNT(*) as session_count FROM demo.embucket.snowplow_web_sessions"
+snowsql "SELECT domain_sessionid, start_tstamp, end_tstamp, page_views, total_events FROM demo.embucket.snowplow_web_sessions ORDER BY start_tstamp LIMIT 5"
+
 # ============================================
 # Batch 2: Incremental Update
 # ============================================
@@ -86,14 +100,61 @@ echo "--- Updating incremental manifest ---"
 sp_update_incremental_manifest
 snowsql "SELECT model, last_success FROM demo.embucket.snowplow_web_incremental_manifest"
 
+# Build sessions from events
+echo ""
+echo "--- Building sessions from events (incremental) ---"
+sp_create_sessions_this_run
+snowsql "SELECT COUNT(*) as sessions_this_run_count FROM demo.embucket.snowplow_web_sessions_this_run"
+
+# Merge sessions into final table
+echo ""
+echo "--- Merging sessions into final table (incremental) ---"
+sp_merge_sessions
+snowsql "SELECT COUNT(*) as session_count FROM demo.embucket.snowplow_web_sessions"
+snowsql "SELECT domain_sessionid, start_tstamp, end_tstamp, page_views, total_events FROM demo.embucket.snowplow_web_sessions ORDER BY start_tstamp LIMIT 5"
+
 # ============================================
 # Final Verification
 # ============================================
 echo ""
 echo "=== FINAL VERIFICATION ==="
 echo ""
+
+echo "--- Lifecycle Manifest ---"
 snowsql "SELECT COUNT(*) as total_sessions FROM demo.embucket.snowplow_web_base_sessions_lifecycle_manifest"
 snowsql "SELECT COUNT(*) as total_quarantined FROM demo.embucket.snowplow_web_base_quarantined_sessions"
+
+echo ""
+echo "--- Sessions Table ---"
+snowsql "SELECT COUNT(*) as total_sessions FROM demo.embucket.snowplow_web_sessions"
+snowsql "
+  SELECT
+    domain_sessionid,
+    user_id,
+    start_tstamp,
+    end_tstamp,
+    page_views,
+    total_events,
+    is_engaged,
+    absolute_time_in_s
+  FROM demo.embucket.snowplow_web_sessions
+  ORDER BY start_tstamp
+  LIMIT 10
+"
+
+echo ""
+echo "--- Key Metrics Summary ---"
+snowsql "
+  SELECT
+    COUNT(*) as total_sessions,
+    COUNT(DISTINCT domain_userid) as unique_users,
+    SUM(page_views) as total_page_views,
+    SUM(total_events) as total_events,
+    SUM(CASE WHEN is_engaged THEN 1 ELSE 0 END) as engaged_sessions,
+    AVG(absolute_time_in_s) as avg_session_duration_s
+  FROM demo.embucket.snowplow_web_sessions
+"
+
 echo ""
 echo "Test complete!"
 

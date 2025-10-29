@@ -234,6 +234,98 @@ sp_create_sessions_lifecycle_manifest() {
   );"
 }
 
+sp_create_sessions() {
+  snow sql -q "CREATE TABLE demo.embucket.snowplow_web_sessions (
+    -- Core identifiers
+    app_id VARCHAR(255),
+    platform VARCHAR(255),
+    domain_sessionid VARCHAR(128) PRIMARY KEY,
+    original_domain_sessionid VARCHAR(128),
+    domain_sessionidx INTEGER,
+
+    -- Timestamps
+    start_tstamp TIMESTAMP,
+    end_tstamp TIMESTAMP,
+
+    -- User identifiers
+    user_id VARCHAR(255),
+    domain_userid VARCHAR(128),
+    original_domain_userid VARCHAR(128),
+    stitched_user_id VARCHAR(255),
+    network_userid VARCHAR(128),
+
+    -- Engagement metrics
+    page_views INTEGER,
+    engaged_time_in_s INTEGER,
+    total_events INTEGER,
+    is_engaged BOOLEAN,
+    absolute_time_in_s INTEGER,
+
+    -- First page attributes
+    first_page_title VARCHAR(2000),
+    first_page_url TEXT,
+    first_page_urlscheme VARCHAR(16),
+    first_page_urlhost VARCHAR(255),
+    first_page_urlpath VARCHAR(3000),
+    first_page_urlquery VARCHAR(6000),
+    first_page_urlfragment VARCHAR(3000),
+
+    -- Last page attributes
+    last_page_title VARCHAR(2000),
+    last_page_url TEXT,
+    last_page_urlscheme VARCHAR(16),
+    last_page_urlhost VARCHAR(255),
+    last_page_urlpath VARCHAR(3000),
+    last_page_urlquery VARCHAR(6000),
+    last_page_urlfragment VARCHAR(3000),
+
+    -- Referrer attributes
+    referrer TEXT,
+    refr_urlscheme VARCHAR(16),
+    refr_urlhost VARCHAR(255),
+    refr_urlpath VARCHAR(6000),
+    refr_urlquery VARCHAR(6000),
+    refr_urlfragment VARCHAR(3000),
+    refr_medium VARCHAR(25),
+    refr_source VARCHAR(50),
+    refr_term VARCHAR(255),
+
+    -- Marketing parameters
+    mkt_medium VARCHAR(255),
+    mkt_source VARCHAR(255),
+    mkt_term VARCHAR(255),
+    mkt_content VARCHAR(500),
+    mkt_campaign VARCHAR(255),
+    mkt_clickid VARCHAR(255),
+    mkt_network VARCHAR(64),
+    mkt_source_platform VARCHAR(255),
+    default_channel_group VARCHAR(255),
+
+    -- Geo attributes (first event)
+    geo_country VARCHAR(2),
+    geo_region VARCHAR(3),
+    geo_region_name VARCHAR(100),
+    geo_city VARCHAR(75),
+    geo_zipcode VARCHAR(15),
+    geo_latitude DOUBLE PRECISION,
+    geo_longitude DOUBLE PRECISION,
+    geo_timezone VARCHAR(64),
+
+    -- Geo attributes (last event)
+    last_geo_country VARCHAR(2),
+    last_geo_region_name VARCHAR(100),
+    last_geo_city VARCHAR(75),
+
+    -- Device/Browser attributes
+    user_ipaddress VARCHAR(128),
+    useragent VARCHAR(1000),
+    br_renderengine VARCHAR(50),
+    br_lang VARCHAR(255),
+    os_timezone VARCHAR(255),
+    screen_resolution VARCHAR(50)
+  );"
+}
+
 sp_populate_new_event_limits() {
   snow sql -q "
     CREATE OR REPLACE TABLE demo.embucket.snowplow_web_base_new_event_limits AS
@@ -330,5 +422,320 @@ sp_detect_quarantined_sessions() {
     WHEN NOT MATCHED THEN
       INSERT (session_identifier)
       VALUES (source.session_identifier);
+  "
+}
+
+sp_create_sessions_this_run() {
+  snow sql -q "
+    CREATE OR REPLACE TABLE demo.embucket.snowplow_web_sessions_this_run AS
+    WITH session_firsts AS (
+      -- Get first event attributes for each session
+      SELECT
+        domain_sessionid,
+        app_id,
+        platform,
+        domain_sessionidx,
+        user_id,
+        domain_userid,
+        network_userid,
+
+        -- First page attributes
+        page_title AS first_page_title,
+        page_url AS first_page_url,
+        page_urlscheme AS first_page_urlscheme,
+        page_urlhost AS first_page_urlhost,
+        page_urlpath AS first_page_urlpath,
+        page_urlquery AS first_page_urlquery,
+        page_urlfragment AS first_page_urlfragment,
+
+        -- Referrer attributes (from first event)
+        page_referrer AS referrer,
+        refr_urlscheme,
+        refr_urlhost,
+        refr_urlpath,
+        refr_urlquery,
+        refr_urlfragment,
+        refr_medium,
+        refr_source,
+        refr_term,
+
+        -- Marketing parameters (from first event)
+        mkt_medium,
+        mkt_source,
+        mkt_term,
+        mkt_content,
+        mkt_campaign,
+        mkt_clickid,
+        mkt_network,
+
+        -- Extract mkt_source_platform from URL query
+        REGEXP_SUBSTR(page_urlquery, 'utm_source_platform=([^?&#]*)', 1, 1, 'e', 1) AS mkt_source_platform,
+
+        -- Geo attributes (first event)
+        geo_country,
+        geo_region,
+        geo_region_name,
+        geo_city,
+        geo_zipcode,
+        geo_latitude,
+        geo_longitude,
+        geo_timezone,
+
+        -- Device/Browser attributes (first event)
+        user_ipaddress,
+        useragent,
+        br_renderengine,
+        br_lang,
+        os_timezone,
+        CONCAT(COALESCE(dvce_screenwidth, ''), 'x', COALESCE(dvce_screenheight, '')) AS screen_resolution
+      FROM demo.embucket.events
+      WHERE domain_sessionid IS NOT NULL
+      QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY domain_sessionid
+        ORDER BY collector_tstamp, dvce_created_tstamp, event_id
+      ) = 1
+    ),
+    session_lasts AS (
+      -- Get last page view attributes for each session
+      SELECT
+        domain_sessionid,
+
+        -- Last page attributes
+        page_title AS last_page_title,
+        page_url AS last_page_url,
+        page_urlscheme AS last_page_urlscheme,
+        page_urlhost AS last_page_urlhost,
+        page_urlpath AS last_page_urlpath,
+        page_urlquery AS last_page_urlquery,
+        page_urlfragment AS last_page_urlfragment,
+
+        -- Last geo attributes
+        geo_country AS last_geo_country,
+        geo_region_name AS last_geo_region_name,
+        geo_city AS last_geo_city
+      FROM demo.embucket.events
+      WHERE domain_sessionid IS NOT NULL
+        AND event = 'page_view'
+      QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY domain_sessionid
+        ORDER BY collector_tstamp DESC, dvce_created_tstamp DESC, event_id DESC
+      ) = 1
+    ),
+    session_aggs AS (
+      -- Aggregate metrics for each session
+      SELECT
+        domain_sessionid,
+        MIN(collector_tstamp) AS start_tstamp,
+        MAX(collector_tstamp) AS end_tstamp,
+        COUNT(*) AS total_events,
+        COUNT(DISTINCT CASE WHEN event = 'page_view' THEN event_id END) AS page_views,
+        TIMESTAMPDIFF(SECOND, MIN(collector_tstamp), MAX(collector_tstamp)) AS absolute_time_in_s
+      FROM demo.embucket.events
+      WHERE domain_sessionid IS NOT NULL
+      GROUP BY domain_sessionid
+    )
+    SELECT
+      -- Core identifiers
+      f.app_id,
+      f.platform,
+      f.domain_sessionid,
+      f.domain_sessionid AS original_domain_sessionid,
+      f.domain_sessionidx,
+
+      -- Timestamps
+      a.start_tstamp,
+      a.end_tstamp,
+
+      -- User identifiers
+      f.user_id,
+      f.domain_userid,
+      f.domain_userid AS original_domain_userid,
+      f.user_id AS stitched_user_id,
+      f.network_userid,
+
+      -- Engagement metrics
+      a.page_views,
+      0 AS engaged_time_in_s,  -- Simplified: requires page_ping calculation
+      a.total_events,
+      (a.page_views >= 2 OR a.absolute_time_in_s >= 10) AS is_engaged,
+      a.absolute_time_in_s,
+
+      -- First page attributes
+      f.first_page_title,
+      f.first_page_url,
+      f.first_page_urlscheme,
+      f.first_page_urlhost,
+      f.first_page_urlpath,
+      f.first_page_urlquery,
+      f.first_page_urlfragment,
+
+      -- Last page attributes (fallback to first if no last)
+      COALESCE(l.last_page_title, f.first_page_title) AS last_page_title,
+      COALESCE(l.last_page_url, f.first_page_url) AS last_page_url,
+      COALESCE(l.last_page_urlscheme, f.first_page_urlscheme) AS last_page_urlscheme,
+      COALESCE(l.last_page_urlhost, f.first_page_urlhost) AS last_page_urlhost,
+      COALESCE(l.last_page_urlpath, f.first_page_urlpath) AS last_page_urlpath,
+      COALESCE(l.last_page_urlquery, f.first_page_urlquery) AS last_page_urlquery,
+      COALESCE(l.last_page_urlfragment, f.first_page_urlfragment) AS last_page_urlfragment,
+
+      -- Referrer attributes
+      f.referrer,
+      f.refr_urlscheme,
+      f.refr_urlhost,
+      f.refr_urlpath,
+      f.refr_urlquery,
+      f.refr_urlfragment,
+      f.refr_medium,
+      f.refr_source,
+      f.refr_term,
+
+      -- Marketing parameters
+      f.mkt_medium,
+      f.mkt_source,
+      f.mkt_term,
+      f.mkt_content,
+      f.mkt_campaign,
+      f.mkt_clickid,
+      f.mkt_network,
+      f.mkt_source_platform,
+      'Unassigned' AS default_channel_group,  -- Simplified: requires complex GA4 logic
+
+      -- Geo attributes (first event)
+      f.geo_country,
+      f.geo_region,
+      f.geo_region_name,
+      f.geo_city,
+      f.geo_zipcode,
+      f.geo_latitude,
+      f.geo_longitude,
+      f.geo_timezone,
+
+      -- Geo attributes (last event)
+      COALESCE(l.last_geo_country, f.geo_country) AS last_geo_country,
+      COALESCE(l.last_geo_region_name, f.geo_region_name) AS last_geo_region_name,
+      COALESCE(l.last_geo_city, f.geo_city) AS last_geo_city,
+
+      -- Device/Browser attributes
+      f.user_ipaddress,
+      f.useragent,
+      f.br_renderengine,
+      f.br_lang,
+      f.os_timezone,
+      f.screen_resolution
+    FROM session_firsts f
+    LEFT JOIN session_lasts l ON f.domain_sessionid = l.domain_sessionid
+    LEFT JOIN session_aggs a ON f.domain_sessionid = a.domain_sessionid;
+  "
+}
+
+sp_merge_sessions() {
+  snow sql -q "
+    MERGE INTO demo.embucket.snowplow_web_sessions AS target
+    USING demo.embucket.snowplow_web_sessions_this_run AS source
+    ON target.domain_sessionid = source.domain_sessionid
+    WHEN MATCHED THEN
+      UPDATE SET
+        app_id = source.app_id,
+        platform = source.platform,
+        original_domain_sessionid = source.original_domain_sessionid,
+        domain_sessionidx = source.domain_sessionidx,
+        start_tstamp = source.start_tstamp,
+        end_tstamp = source.end_tstamp,
+        user_id = source.user_id,
+        domain_userid = source.domain_userid,
+        original_domain_userid = source.original_domain_userid,
+        stitched_user_id = source.stitched_user_id,
+        network_userid = source.network_userid,
+        page_views = source.page_views,
+        engaged_time_in_s = source.engaged_time_in_s,
+        total_events = source.total_events,
+        is_engaged = source.is_engaged,
+        absolute_time_in_s = source.absolute_time_in_s,
+        first_page_title = source.first_page_title,
+        first_page_url = source.first_page_url,
+        first_page_urlscheme = source.first_page_urlscheme,
+        first_page_urlhost = source.first_page_urlhost,
+        first_page_urlpath = source.first_page_urlpath,
+        first_page_urlquery = source.first_page_urlquery,
+        first_page_urlfragment = source.first_page_urlfragment,
+        last_page_title = source.last_page_title,
+        last_page_url = source.last_page_url,
+        last_page_urlscheme = source.last_page_urlscheme,
+        last_page_urlhost = source.last_page_urlhost,
+        last_page_urlpath = source.last_page_urlpath,
+        last_page_urlquery = source.last_page_urlquery,
+        last_page_urlfragment = source.last_page_urlfragment,
+        referrer = source.referrer,
+        refr_urlscheme = source.refr_urlscheme,
+        refr_urlhost = source.refr_urlhost,
+        refr_urlpath = source.refr_urlpath,
+        refr_urlquery = source.refr_urlquery,
+        refr_urlfragment = source.refr_urlfragment,
+        refr_medium = source.refr_medium,
+        refr_source = source.refr_source,
+        refr_term = source.refr_term,
+        mkt_medium = source.mkt_medium,
+        mkt_source = source.mkt_source,
+        mkt_term = source.mkt_term,
+        mkt_content = source.mkt_content,
+        mkt_campaign = source.mkt_campaign,
+        mkt_clickid = source.mkt_clickid,
+        mkt_network = source.mkt_network,
+        mkt_source_platform = source.mkt_source_platform,
+        default_channel_group = source.default_channel_group,
+        geo_country = source.geo_country,
+        geo_region = source.geo_region,
+        geo_region_name = source.geo_region_name,
+        geo_city = source.geo_city,
+        geo_zipcode = source.geo_zipcode,
+        geo_latitude = source.geo_latitude,
+        geo_longitude = source.geo_longitude,
+        geo_timezone = source.geo_timezone,
+        last_geo_country = source.last_geo_country,
+        last_geo_region_name = source.last_geo_region_name,
+        last_geo_city = source.last_geo_city,
+        user_ipaddress = source.user_ipaddress,
+        useragent = source.useragent,
+        br_renderengine = source.br_renderengine,
+        br_lang = source.br_lang,
+        os_timezone = source.os_timezone,
+        screen_resolution = source.screen_resolution
+    WHEN NOT MATCHED THEN
+      INSERT (
+        app_id, platform, domain_sessionid, original_domain_sessionid, domain_sessionidx,
+        start_tstamp, end_tstamp,
+        user_id, domain_userid, original_domain_userid, stitched_user_id, network_userid,
+        page_views, engaged_time_in_s, total_events, is_engaged, absolute_time_in_s,
+        first_page_title, first_page_url, first_page_urlscheme, first_page_urlhost,
+        first_page_urlpath, first_page_urlquery, first_page_urlfragment,
+        last_page_title, last_page_url, last_page_urlscheme, last_page_urlhost,
+        last_page_urlpath, last_page_urlquery, last_page_urlfragment,
+        referrer, refr_urlscheme, refr_urlhost, refr_urlpath, refr_urlquery, refr_urlfragment,
+        refr_medium, refr_source, refr_term,
+        mkt_medium, mkt_source, mkt_term, mkt_content, mkt_campaign, mkt_clickid, mkt_network,
+        mkt_source_platform, default_channel_group,
+        geo_country, geo_region, geo_region_name, geo_city, geo_zipcode,
+        geo_latitude, geo_longitude, geo_timezone,
+        last_geo_country, last_geo_region_name, last_geo_city,
+        user_ipaddress, useragent, br_renderengine, br_lang, os_timezone, screen_resolution
+      )
+      VALUES (
+        source.app_id, source.platform, source.domain_sessionid, source.original_domain_sessionid, source.domain_sessionidx,
+        source.start_tstamp, source.end_tstamp,
+        source.user_id, source.domain_userid, source.original_domain_userid, source.stitched_user_id, source.network_userid,
+        source.page_views, source.engaged_time_in_s, source.total_events, source.is_engaged, source.absolute_time_in_s,
+        source.first_page_title, source.first_page_url, source.first_page_urlscheme, source.first_page_urlhost,
+        source.first_page_urlpath, source.first_page_urlquery, source.first_page_urlfragment,
+        source.last_page_title, source.last_page_url, source.last_page_urlscheme, source.last_page_urlhost,
+        source.last_page_urlpath, source.last_page_urlquery, source.last_page_urlfragment,
+        source.referrer, source.refr_urlscheme, source.refr_urlhost, source.refr_urlpath, source.refr_urlquery, source.refr_urlfragment,
+        source.refr_medium, source.refr_source, source.refr_term,
+        source.mkt_medium, source.mkt_source, source.mkt_term, source.mkt_content, source.mkt_campaign, source.mkt_clickid, source.mkt_network,
+        source.mkt_source_platform, source.default_channel_group,
+        source.geo_country, source.geo_region, source.geo_region_name, source.geo_city, source.geo_zipcode,
+        source.geo_latitude, source.geo_longitude, source.geo_timezone,
+        source.last_geo_country, source.last_geo_region_name, source.last_geo_city,
+        source.user_ipaddress, source.useragent, source.br_renderengine, source.br_lang, source.os_timezone, source.screen_resolution
+      );
   "
 }
