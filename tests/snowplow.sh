@@ -21,7 +21,7 @@ echo ""
 
 # Load first batch of events
 echo "--- Loading first batch of events ---"
-sp_copy_into_events1
+sp_copy_into_events_n 1
 snowsql "SELECT COUNT(*) as event_count FROM demo.embucket.events"
 
 # Calculate time window for first run
@@ -58,7 +58,7 @@ echo ""
 
 # Load second batch of events
 echo "--- Loading second batch of events ---"
-sp_copy_into_events2
+sp_copy_into_events_n 2
 snowsql "SELECT COUNT(*) as event_count FROM demo.embucket.events"
 
 # Recalculate time window with lookback

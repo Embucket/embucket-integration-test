@@ -200,12 +200,9 @@ sp_create_events() {
   );"
 }
 
-sp_copy_into_events1() {
-  snow sql -q "COPY INTO demo.embucket.events FROM 'file:///storage/snowplow/source/snowplow_web_events1.csv' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1);"
-}
-
-sp_copy_into_events2() {
-  snow sql -q "COPY INTO demo.embucket.events FROM 'file:///storage/snowplow/source/snowplow_web_events2.csv' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1);"
+sp_copy_into_events_n() {
+  local n=$1
+  snow sql -q "COPY INTO demo.embucket.events FROM 'file:///storage/snowplow/source/snowplow_web_events$n.csv' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1);"
 }
 
 sp_create_incremental_manifest() {
