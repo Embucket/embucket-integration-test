@@ -158,32 +158,32 @@ echo ""
 echo "--- Sessions Table ---"
 snowsql "SELECT COUNT(*) as total_sessions FROM demo.embucket.snowplow_web_sessions"
 snowsql "
-  SELECT
-    domain_sessionid,
-    user_id,
-    start_tstamp,
-    end_tstamp,
-    page_views,
-    total_events,
-    is_engaged,
-    absolute_time_in_s
-  FROM demo.embucket.snowplow_web_sessions
-  ORDER BY start_tstamp
-  LIMIT 10
-"
+   SELECT
+     domain_sessionid,
+     user_id,
+     start_tstamp,
+     end_tstamp,
+     page_views,
+     total_events,
+     is_engaged,
+     absolute_time_in_s
+   FROM demo.embucket.snowplow_web_sessions
+   ORDER BY start_tstamp
+   LIMIT 10
+ "
 
 echo ""
 echo "--- Key Metrics Summary ---"
 snowsql "
-  SELECT
-    COUNT(*) as total_sessions,
-    COUNT(DISTINCT domain_userid) as unique_users,
-    SUM(page_views) as total_page_views,
-    SUM(total_events) as total_events,
-    SUM(CASE WHEN is_engaged THEN 1 ELSE 0 END) as engaged_sessions,
-    AVG(absolute_time_in_s) as avg_session_duration_s
-  FROM demo.embucket.snowplow_web_sessions
-"
+   SELECT
+     COUNT(*) as total_sessions,
+     COUNT(DISTINCT domain_userid) as unique_users,
+     SUM(page_views) as total_page_views,
+     SUM(total_events) as total_events,
+     SUM(CASE WHEN is_engaged THEN 1 ELSE 0 END) as engaged_sessions,
+     AVG(absolute_time_in_s) as avg_session_duration_s
+   FROM demo.embucket.snowplow_web_sessions
+ "
 
 # ============================================
 # Comparison with Expected Results
@@ -194,94 +194,94 @@ echo ""
 
 echo "--- Session Count Comparison ---"
 snowsql "
-  SELECT
-    'Computed' as source,
-    COUNT(*) as session_count
-  FROM demo.embucket.snowplow_web_sessions
-  UNION ALL
-  SELECT
-    'Expected' as source,
-    COUNT(*) as session_count
-  FROM demo.embucket.snowplow_web_sessions_expected
-"
+   SELECT
+     'Computed' as source,
+     COUNT(*) as session_count
+   FROM demo.embucket.snowplow_web_sessions
+   UNION ALL
+   SELECT
+     'Expected' as source,
+     COUNT(*) as session_count
+   FROM demo.embucket.snowplow_web_sessions_expected
+ "
 
 echo ""
 echo "--- Common Sessions Check ---"
 snowsql "
-  WITH computed_sessions AS (
-    SELECT domain_sessionid FROM demo.embucket.snowplow_web_sessions
-  ),
-  expected_sessions AS (
-    SELECT domain_sessionid FROM demo.embucket.snowplow_web_sessions_expected
-  )
-  SELECT
-    COUNT(DISTINCT c.domain_sessionid) as sessions_in_both,
-    (SELECT COUNT(*) FROM computed_sessions) as total_computed,
-    (SELECT COUNT(*) FROM expected_sessions) as total_expected,
-    (SELECT COUNT(*) FROM computed_sessions WHERE domain_sessionid NOT IN (SELECT domain_sessionid FROM expected_sessions)) as only_in_computed,
-    (SELECT COUNT(*) FROM expected_sessions WHERE domain_sessionid NOT IN (SELECT domain_sessionid FROM computed_sessions)) as only_in_expected
-  FROM computed_sessions c
-  INNER JOIN expected_sessions e ON c.domain_sessionid = e.domain_sessionid
-"
+   WITH computed_sessions AS (
+     SELECT domain_sessionid FROM demo.embucket.snowplow_web_sessions
+   ),
+   expected_sessions AS (
+     SELECT domain_sessionid FROM demo.embucket.snowplow_web_sessions_expected
+   )
+   SELECT
+     COUNT(DISTINCT c.domain_sessionid) as sessions_in_both,
+     (SELECT COUNT(*) FROM computed_sessions) as total_computed,
+     (SELECT COUNT(*) FROM expected_sessions) as total_expected,
+     (SELECT COUNT(*) FROM computed_sessions WHERE domain_sessionid NOT IN (SELECT domain_sessionid FROM expected_sessions)) as only_in_computed,
+     (SELECT COUNT(*) FROM expected_sessions WHERE domain_sessionid NOT IN (SELECT domain_sessionid FROM computed_sessions)) as only_in_expected
+   FROM computed_sessions c
+   INNER JOIN expected_sessions e ON c.domain_sessionid = e.domain_sessionid
+ "
 
 echo ""
 echo "--- Field-by-Field Comparison (Common Sessions) ---"
 snowsql "
-  SELECT
-    c.domain_sessionid,
-    c.user_id as computed_user_id,
-    e.user_id as expected_user_id,
-    c.start_tstamp as computed_start,
-    e.start_tstamp as expected_start,
-    c.end_tstamp as computed_end,
-    e.end_tstamp as expected_end,
-    c.page_views as computed_pv,
-    e.page_views as expected_pv,
-    c.total_events as computed_events,
-    e.total_events as expected_events,
-    c.is_engaged as computed_engaged,
-    e.is_engaged as expected_engaged
-  FROM demo.embucket.snowplow_web_sessions c
-  INNER JOIN demo.embucket.snowplow_web_sessions_expected e
-    ON c.domain_sessionid = e.domain_sessionid
-  WHERE
-    c.page_views != e.page_views
-    OR c.total_events != e.total_events
-    OR COALESCE(c.is_engaged, FALSE) != COALESCE(e.is_engaged, FALSE)
-  ORDER BY c.start_tstamp
-  LIMIT 10
-"
+   SELECT
+     c.domain_sessionid,
+     c.user_id as computed_user_id,
+     e.user_id as expected_user_id,
+     c.start_tstamp as computed_start,
+     e.start_tstamp as expected_start,
+     c.end_tstamp as computed_end,
+     e.end_tstamp as expected_end,
+     c.page_views as computed_pv,
+     e.page_views as expected_pv,
+     c.total_events as computed_events,
+     e.total_events as expected_events,
+     c.is_engaged as computed_engaged,
+     e.is_engaged as expected_engaged
+   FROM demo.embucket.snowplow_web_sessions c
+   INNER JOIN demo.embucket.snowplow_web_sessions_expected e
+     ON c.domain_sessionid = e.domain_sessionid
+   WHERE
+     c.page_views != e.page_views
+     OR c.total_events != e.total_events
+     OR COALESCE(c.is_engaged, FALSE) != COALESCE(e.is_engaged, FALSE)
+   ORDER BY c.start_tstamp
+   LIMIT 10
+ "
 
 echo ""
 echo "--- Summary of Differences ---"
 snowsql "
-  WITH compared AS (
-    SELECT
-      c.domain_sessionid,
-      CASE WHEN c.user_id != e.user_id THEN 1 ELSE 0 END as user_id_diff,
-      CASE WHEN c.start_tstamp != e.start_tstamp THEN 1 ELSE 0 END as start_diff,
-      CASE WHEN c.end_tstamp != e.end_tstamp THEN 1 ELSE 0 END as end_diff,
-      CASE WHEN c.page_views != e.page_views THEN 1 ELSE 0 END as pv_diff,
-      CASE WHEN c.total_events != e.total_events THEN 1 ELSE 0 END as events_diff,
-      CASE WHEN COALESCE(c.is_engaged, FALSE) != COALESCE(e.is_engaged, FALSE) THEN 1 ELSE 0 END as engaged_diff,
-      CASE WHEN c.first_page_url != e.first_page_url THEN 1 ELSE 0 END as first_url_diff,
-      CASE WHEN c.last_page_url != e.last_page_url THEN 1 ELSE 0 END as last_url_diff
-    FROM demo.embucket.snowplow_web_sessions c
-    INNER JOIN demo.embucket.snowplow_web_sessions_expected e
-      ON c.domain_sessionid = e.domain_sessionid
-  )
-  SELECT
-    COUNT(*) as total_compared_sessions,
-    SUM(user_id_diff) as user_id_mismatches,
-    SUM(start_diff) as start_tstamp_mismatches,
-    SUM(end_diff) as end_tstamp_mismatches,
-    SUM(pv_diff) as page_views_mismatches,
-    SUM(events_diff) as total_events_mismatches,
-    SUM(engaged_diff) as is_engaged_mismatches,
-    SUM(first_url_diff) as first_url_mismatches,
-    SUM(last_url_diff) as last_url_mismatches
-  FROM compared
-"
+   WITH compared AS (
+     SELECT
+       c.domain_sessionid,
+       CASE WHEN c.user_id != e.user_id THEN 1 ELSE 0 END as user_id_diff,
+       CASE WHEN c.start_tstamp != e.start_tstamp THEN 1 ELSE 0 END as start_diff,
+       CASE WHEN c.end_tstamp != e.end_tstamp THEN 1 ELSE 0 END as end_diff,
+       CASE WHEN c.page_views != e.page_views THEN 1 ELSE 0 END as pv_diff,
+       CASE WHEN c.total_events != e.total_events THEN 1 ELSE 0 END as events_diff,
+       CASE WHEN COALESCE(c.is_engaged, FALSE) != COALESCE(e.is_engaged, FALSE) THEN 1 ELSE 0 END as engaged_diff,
+       CASE WHEN c.first_page_url != e.first_page_url THEN 1 ELSE 0 END as first_url_diff,
+       CASE WHEN c.last_page_url != e.last_page_url THEN 1 ELSE 0 END as last_url_diff
+     FROM demo.embucket.snowplow_web_sessions c
+     INNER JOIN demo.embucket.snowplow_web_sessions_expected e
+       ON c.domain_sessionid = e.domain_sessionid
+   )
+   SELECT
+     COUNT(*) as total_compared_sessions,
+     SUM(user_id_diff) as user_id_mismatches,
+     SUM(start_diff) as start_tstamp_mismatches,
+     SUM(end_diff) as end_tstamp_mismatches,
+     SUM(pv_diff) as page_views_mismatches,
+     SUM(events_diff) as total_events_mismatches,
+     SUM(engaged_diff) as is_engaged_mismatches,
+     SUM(first_url_diff) as first_url_mismatches,
+     SUM(last_url_diff) as last_url_mismatches
+   FROM compared
+ "
 
 echo ""
 echo "Test complete!"

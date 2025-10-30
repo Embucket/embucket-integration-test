@@ -1017,3 +1017,7 @@ sp_merge_sessions() {
       );
   "
 }
+
+activate
+
+if [ -n "$1" ]; then "$1" "${2:0}"; fi
