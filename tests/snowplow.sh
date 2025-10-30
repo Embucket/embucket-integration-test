@@ -225,6 +225,38 @@ snowsql "
  "
 
 echo ""
+echo "--- Sessions Only in Computed (not in Expected) ---"
+snowsql "
+   SELECT
+     c.domain_sessionid,
+     c.start_tstamp,
+     c.end_tstamp,
+     c.page_views,
+     c.total_events
+   FROM demo.embucket.snowplow_web_sessions c
+   LEFT JOIN demo.embucket.snowplow_web_sessions_expected e
+     ON c.domain_sessionid = e.domain_sessionid
+   WHERE e.domain_sessionid IS NULL
+   ORDER BY c.start_tstamp
+ "
+
+echo ""
+echo "--- Sessions Only in Expected (not in Computed) ---"
+snowsql "
+   SELECT
+     e.domain_sessionid,
+     e.start_tstamp,
+     e.end_tstamp,
+     e.page_views,
+     e.total_events
+   FROM demo.embucket.snowplow_web_sessions_expected e
+   LEFT JOIN demo.embucket.snowplow_web_sessions c
+     ON e.domain_sessionid = c.domain_sessionid
+   WHERE c.domain_sessionid IS NULL
+   ORDER BY e.start_tstamp
+ "
+
+echo ""
 echo "--- Field-by-Field Comparison (Common Sessions) ---"
 snowsql "
    SELECT

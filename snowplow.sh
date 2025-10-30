@@ -462,7 +462,8 @@ sp_create_events_this_run() {
         SELECT
           COALESCE(e.domain_sessionid, NULL) as session_identifier,
           -- Extract page_view_id from JSON context
-          TRY_PARSE_JSON(e.contexts_com_snowplowanalytics_snowplow_web_page_1_0_0)[0]:id::VARCHAR as page_view_id,
+          -- NULLIF converts string 'null' to SQL NULL
+          NULLIF(TRY_PARSE_JSON(e.contexts_com_snowplowanalytics_snowplow_web_page_1_0_0)[0]:id::VARCHAR, 'null') as page_view_id,
           e.*
         FROM demo.embucket.events e
       )
