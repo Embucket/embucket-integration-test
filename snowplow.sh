@@ -454,6 +454,64 @@ sp_create_sessions_this_run() {
   "
 }
 
+sp_create_events_this_run() {
+  snow sql -q "
+    CREATE OR REPLACE TABLE demo.embucket.snowplow_web_base_events_this_run AS
+    WITH base_query AS (
+      WITH identified_events AS (
+        SELECT
+          COALESCE(e.domain_sessionid, NULL) as session_identifier,
+          -- Extract page_view_id from JSON context
+          TRY_PARSE_JSON(e.contexts_com_snowplowanalytics_snowplow_web_page_1_0_0)[0]:id::VARCHAR as page_view_id,
+          e.*
+        FROM demo.embucket.events e
+      )
+      SELECT
+        a.*,
+        b.user_identifier,
+        b.start_tstamp as session_start_tstamp
+      FROM identified_events a
+      INNER JOIN demo.embucket.snowplow_web_base_sessions_this_run b
+        ON a.session_identifier = b.session_identifier
+      CROSS JOIN demo.embucket.snowplow_web_base_new_event_limits limits
+      WHERE
+        -- Filter to page_view and page_ping events with page_view_id
+        a.event IN ('page_view', 'page_ping')
+        AND a.page_view_id IS NOT NULL
+        -- Cap session at max_session_days (3 days) from start
+        AND a.collector_tstamp <= DATEADD(day, 3, b.start_tstamp)
+        -- Late event filtering: device sent time within 3 days of creation
+        AND a.dvce_sent_tstamp <= DATEADD(day, 3, a.dvce_created_tstamp)
+        -- Time window filters
+        AND a.collector_tstamp >= limits.lower_limit
+        AND a.collector_tstamp <= limits.upper_limit
+        AND a.collector_tstamp >= b.start_tstamp
+      -- Deduplicate by event_id (keep first occurrence)
+      QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY a.event_id
+        ORDER BY a.collector_tstamp, a.dvce_created_tstamp
+      ) = 1
+    )
+    SELECT
+      a.page_view_id,
+      a.session_identifier as domain_sessionid,
+      a.domain_sessionid as original_domain_sessionid,
+      a.user_identifier as domain_userid,
+      a.domain_userid as original_domain_userid,
+      a.session_start_tstamp,
+      a.* EXCLUDE(
+        page_view_id,
+        session_identifier,
+        domain_sessionid,
+        domain_userid,
+        user_identifier,
+        session_start_tstamp,
+        contexts_com_snowplowanalytics_snowplow_web_page_1_0_0
+      )
+    FROM base_query a;
+  "
+}
+
 sp_build_sessions_from_events() {
   snow sql -q "
     CREATE OR REPLACE TABLE demo.embucket.snowplow_web_sessions_this_run AS
@@ -461,6 +519,7 @@ sp_build_sessions_from_events() {
       -- Get first event attributes for each session
       SELECT
         domain_sessionid,
+        event,
         app_id,
         platform,
         domain_sessionidx,
@@ -517,13 +576,10 @@ sp_build_sessions_from_events() {
         br_lang,
         os_timezone,
         CONCAT(COALESCE(dvce_screenwidth, ''), 'x', COALESCE(dvce_screenheight, '')) AS screen_resolution
-      FROM demo.embucket.events
+      FROM demo.embucket.snowplow_web_base_events_this_run
       WHERE domain_sessionid IS NOT NULL
-        -- Only process events for sessions in sessions_this_run
-        AND domain_sessionid IN (
-          SELECT session_identifier
-          FROM demo.embucket.snowplow_web_base_sessions_this_run
-        )
+        -- Bot filtering: exclude known bot/crawler user agents
+        AND NOT RLIKE(LOWER(useragent), '.*(bot|crawl|slurp|spider|archiv|spinn|sniff|seo|audit|survey|pingdom|worm|capture|(browser|screen)shots|analyz|index|thumb|check|facebook|pingdombot|phantomjs|yandexbot|twitterbot|a_archiver|facebookexternalhit|bingbot|bingpreview|googlebot|baiduspider|360(spider|user-agent)|semalt).*')
       QUALIFY ROW_NUMBER() OVER (
         PARTITION BY domain_sessionid
         ORDER BY collector_tstamp, dvce_created_tstamp, event_id
@@ -547,14 +603,9 @@ sp_build_sessions_from_events() {
         geo_country AS last_geo_country,
         geo_region_name AS last_geo_region_name,
         geo_city AS last_geo_city
-      FROM demo.embucket.events
+      FROM demo.embucket.snowplow_web_base_events_this_run
       WHERE domain_sessionid IS NOT NULL
         AND event = 'page_view'
-        -- Only process events for sessions in sessions_this_run
-        AND domain_sessionid IN (
-          SELECT session_identifier
-          FROM demo.embucket.snowplow_web_base_sessions_this_run
-        )
       QUALIFY ROW_NUMBER() OVER (
         PARTITION BY domain_sessionid
         ORDER BY collector_tstamp DESC, dvce_created_tstamp DESC, event_id DESC
@@ -567,15 +618,31 @@ sp_build_sessions_from_events() {
         MIN(collector_tstamp) AS start_tstamp,
         MAX(collector_tstamp) AS end_tstamp,
         COUNT(*) AS total_events,
-        COUNT(DISTINCT CASE WHEN event = 'page_view' THEN event_id END) AS page_views,
-        TIMESTAMPDIFF(SECOND, MIN(collector_tstamp), MAX(collector_tstamp)) AS absolute_time_in_s
-      FROM demo.embucket.events
+        -- Count page views by page_view_id
+        COUNT(DISTINCT CASE WHEN event = 'page_view' THEN page_view_id END) AS page_views,
+        TIMESTAMPDIFF(SECOND, MIN(collector_tstamp), MAX(collector_tstamp)) AS absolute_time_in_s,
+        -- Calculate engaged time from page_ping heartbeats
+        -- Formula: 10 * (unique_10s_buckets - unique_pages) + (unique_pages * 5)
+        -- This calculates engaged time based on 10-second page_ping intervals
+        (10 * (
+          COUNT(DISTINCT CASE
+            WHEN event = 'page_ping' AND page_view_id IS NOT NULL
+            THEN page_view_id || CAST(FLOOR(DATE_PART('epoch_second', dvce_created_tstamp) / 10) AS TEXT)
+            ELSE NULL
+          END) -
+          COUNT(DISTINCT CASE
+            WHEN event = 'page_ping' AND page_view_id IS NOT NULL
+            THEN page_view_id
+            ELSE NULL
+          END)
+        )) +
+        (COUNT(DISTINCT CASE
+          WHEN event = 'page_ping' AND page_view_id IS NOT NULL
+          THEN page_view_id
+          ELSE NULL
+        END) * 5) AS engaged_time_in_s
+      FROM demo.embucket.snowplow_web_base_events_this_run
       WHERE domain_sessionid IS NOT NULL
-        -- Only process events for sessions in sessions_this_run
-        AND domain_sessionid IN (
-          SELECT session_identifier
-          FROM demo.embucket.snowplow_web_base_sessions_this_run
-        )
       GROUP BY domain_sessionid
     )
     SELECT
@@ -587,7 +654,11 @@ sp_build_sessions_from_events() {
       f.domain_sessionidx,
 
       -- Timestamps
-      a.start_tstamp,
+      -- Adjust start timestamp: subtract 5 seconds when first event is page_ping (min visit length)
+      CASE
+        WHEN f.event = 'page_ping' THEN DATEADD(second, -5, a.start_tstamp)
+        ELSE a.start_tstamp
+      END AS start_tstamp,
       a.end_tstamp,
 
       -- User identifiers
@@ -599,9 +670,10 @@ sp_build_sessions_from_events() {
 
       -- Engagement metrics
       a.page_views,
-      0 AS engaged_time_in_s,  -- Simplified: requires page_ping calculation
+      a.engaged_time_in_s,
       a.total_events,
-      (a.page_views >= 2 OR a.absolute_time_in_s >= 10) AS is_engaged,
+      -- is_engaged: 2+ page views OR 10+ seconds engaged time
+      (a.page_views >= 2 OR a.engaged_time_in_s >= 10) AS is_engaged,
       a.absolute_time_in_s,
 
       -- First page attributes

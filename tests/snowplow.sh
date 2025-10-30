@@ -62,6 +62,12 @@ echo "--- Selecting sessions to process (from lifecycle manifest) ---"
 sp_create_sessions_this_run
 snowsql "SELECT COUNT(*) as base_sessions_this_run_count FROM demo.embucket.snowplow_web_base_sessions_this_run"
 
+# Filter events for sessions being processed
+echo ""
+echo "--- Filtering events for sessions this run ---"
+sp_create_events_this_run
+snowsql "SELECT COUNT(*) as events_this_run_count FROM demo.embucket.snowplow_web_base_events_this_run"
+
 # Build session records from events
 echo ""
 echo "--- Aggregating events into session records ---"
@@ -117,6 +123,12 @@ echo ""
 echo "--- Selecting sessions to process (incremental) ---"
 sp_create_sessions_this_run
 snowsql "SELECT COUNT(*) as base_sessions_this_run_count FROM demo.embucket.snowplow_web_base_sessions_this_run"
+
+# Filter events for sessions being processed
+echo ""
+echo "--- Filtering events for sessions this run (incremental) ---"
+sp_create_events_this_run
+snowsql "SELECT COUNT(*) as events_this_run_count FROM demo.embucket.snowplow_web_base_events_this_run"
 
 # Build session records from events
 echo ""
