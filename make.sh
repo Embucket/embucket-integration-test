@@ -51,6 +51,23 @@ volume_s3() {
   )"
 }
 
+volume_s3tables() {
+  snow sql -q "CREATE EXTERNAL VOLUME 'bucket'
+  STORAGE_LOCATIONS = 
+  (
+    (
+      NAME = 'bucket'
+      STORAGE_PROVIDER = 's3tables'
+      CREDENTIALS = (
+        AWS_KEY_ID = '$AWS_ACCESS_KEY_ID'
+        AWS_SECRET_KEY = '$AWS_SECRET_ACCESS_KEY'
+        REGION = 'us-east-2'
+      )
+      STORAGE_AWS_ACCESS_POINT_ARN = 'arn:aws:s3tables:us-east-2:767397688925:bucket/jan-table-bucket'
+    )
+  )"
+}
+
 volume_local() {
   snow sql -q "CREATE EXTERNAL VOLUME 'local'
   STORAGE_LOCATIONS = 

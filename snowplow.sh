@@ -4,6 +4,18 @@ export SNOWFLAKE_HOME=$(pwd)
 
 source ./venv.sh
 
+volume_local_file() {
+  snow sql -q "CREATE EXTERNAL VOLUME 'local'
+  STORAGE_LOCATIONS = 
+  (
+    (
+      NAME = 'local'
+      STORAGE_PROVIDER = 'file'
+      STORAGE_BASE_URL = '$(pwd)/snowplow'
+    )
+  )"
+}
+
 sp_create_events() {
   snow sql -q "CREATE TABLE demo.embucket.events (
     -- IMPORTANT: Column order MUST match CSV file order for COPY INTO to work correctly
@@ -203,6 +215,11 @@ sp_create_events() {
 sp_copy_into_events_n() {
   local n=$1
   snow sql -q "COPY INTO demo.embucket.events FROM 'file:///storage/snowplow/source/snowplow_web_events$n.csv' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1);"
+}
+
+sp_copy_into_events_file_n() {
+  local n=$1
+  snow sql -q "COPY INTO demo.embucket.events FROM 'file:///$(pwd)/snowplow/source/snowplow_web_events$n.csv' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1);"
 }
 
 sp_create_incremental_manifest() {
@@ -903,6 +920,13 @@ sp_create_sessions_expected() {
 sp_load_sessions_expected() {
   snow sql -q "COPY INTO demo.embucket.snowplow_web_sessions_expected
     FROM 'file:///storage/snowplow/expected/snowflake/snowplow_web_sessions_expected.csv'
+    STORAGE_INTEGRATION = local
+    FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1, FIELD_OPTIONALLY_ENCLOSED_BY = '\"');"
+}
+
+sp_load_sessions_expected_file() {
+  snow sql -q "COPY INTO demo.embucket.snowplow_web_sessions_expected
+  FROM 'file:///$(pwd)/snowplow/expected/snowflake/snowplow_web_sessions_expected.csv'
     STORAGE_INTEGRATION = local
     FILE_FORMAT = (TYPE = CSV, SKIP_HEADER = 1, FIELD_OPTIONALLY_ENCLOSED_BY = '\"');"
 }
