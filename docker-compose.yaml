@@ -67,9 +67,7 @@ services:
       - DATAFUSION_EXPLAIN_SHOW_STATISTICS=true
     volumes:
       - warehouse_data:/warehouse
-      - ./clickbench/partitioned:/storage/clickbench/partitioned
-      - ./clickbench/single:/storage/clickbench/single
-      - ./tpch/100:/storage/tpch/100
+      - ./data:/data
       - ./snowplow/source:/storage/snowplow/source
       - ./snowplow/expected:/storage/snowplow/expected
   # minio:

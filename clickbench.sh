@@ -4,11 +4,7 @@ export SNOWFLAKE_HOME=$(pwd)
 
 source ./venv.sh
 
-if [ ! -d "clickbench" ]; then
-  mkdir clickbench
-  mkdir -p clickbench/partitioned
-  mkdir -p clickbench/single
-fi
+mkdir -p data/clickbench/partitioned data/clickbench/single
 
 volume_local_file() {
   snow sql -q "CREATE EXTERNAL VOLUME 'local'
@@ -23,17 +19,17 @@ volume_local_file() {
 }
 
 cp_download_partitioned() {
-  seq 0 99 | xargs -P100 -I{} bash -c 'wget --directory-prefix clickbench/partitioned --continue --progress=dot:giga https://datasets.clickhouse.com/hits_compatible/athena_partitioned/hits_{}.parquet'
+  seq 0 99 | xargs -P100 -I{} bash -c 'wget --directory-prefix data/clickbench/partitioned --continue --progress=dot:giga https://datasets.clickhouse.com/hits_compatible/athena_partitioned/hits_{}.parquet'
 }
 
 cb_download_partitioned_n() {
   local n=$1
-  wget --directory-prefix clickbench/partitioned --continue --progress=dot:giga \
+  wget --directory-prefix data/clickbench/partitioned --continue --progress=dot:giga \
     "https://datasets.clickhouse.com/hits_compatible/athena_partitioned/hits_${n}.parquet"
 }
 
 cb_download_single() {
-  wget --directory-prefix clickbench/single --continue --progress=dot:giga https://datasets.clickhouse.com/hits_compatible/hits.parquet
+  wget --directory-prefix data/clickbench/single --continue --progress=dot:giga https://datasets.clickhouse.com/hits_compatible/hits.parquet
 }
 
 cb_create_table() {
@@ -153,7 +149,7 @@ cb_copy_into_partitioned_small() {
 
 cb_copy_into_partitioned_n() {
   local n=$1
-  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///storage/clickbench/partitioned/hits_$n.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///data/clickbench/partitioned/hits_$n.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 cb_create_table_fc() {
@@ -269,24 +265,24 @@ cb_create_table_fc() {
 
 cb_copy_into_partitioned_n_fc() {
   local n=$1
-  snow sql -q "COPY INTO embucket.public.hits FROM 'file:///storage/clickbench/partitioned/hits_$n.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
+  snow sql -q "COPY INTO embucket.public.hits FROM 'file:///data/clickbench/partitioned/hits_$n.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 cb_copy_into_partitioned() {
-  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///storage/clickbench/partitioned/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///data/clickbench/partitioned/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 cb_copy_into_single() {
-  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///storage/clickbench/single/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.hits FROM 'file:///data/clickbench/single/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 cb_copy_into_partitioned_file() {
-  snow sql -q "COPY INTO demo.embucket.hits FROM 'file://$(pwd)/clickbench/partitioned/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.hits FROM 'file://$(pwd)/data/clickbench/partitioned/' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 cb_copy_into_partitioned_n_file() {
   local n=$1
-  snow sql -q "COPY INTO demo.embucket.hits FROM 'file://$(pwd)/clickbench/partitioned/hits_$n.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.hits FROM 'file://$(pwd)/data/clickbench/partitioned/hits_$n.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 clickbench_setup_partitioned() {

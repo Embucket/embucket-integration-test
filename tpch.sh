@@ -4,10 +4,7 @@ export SNOWFLAKE_HOME=$(pwd)
 
 source ./venv.sh
 
-if [ ! -d "tpch" ]; then
-  mkdir tpch
-  mkdir -p tpch/10
-fi
+mkdir -p data/tpch/10 data/tpch/100
 
 volume_local_file() {
   snow sql -q "CREATE EXTERNAL VOLUME 'local'
@@ -16,7 +13,7 @@ volume_local_file() {
     (
       NAME = 'local'
       STORAGE_PROVIDER = 'file'
-      STORAGE_BASE_URL = '$(pwd)/tpch'
+      STORAGE_BASE_URL = '$(pwd)/data/tpch'
     )
   )"
 }
@@ -126,35 +123,35 @@ tpch_create_tables() {
 }
 
 tpch_copy_into_customer() {
-  snow sql -q "COPY INTO demo.embucket.customer FROM 'file:///storage/tpch/100/customer.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.customer FROM 'file:///data/tpch/100/customer.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_orders() {
-  snow sql -q "COPY INTO demo.embucket.orders FROM 'file:///storage/tpch/100/orders.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.orders FROM 'file:///data/tpch/100/orders.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_lineitem() {
-  snow sql -q "COPY INTO demo.embucket.lineitem FROM 'file:///storage/tpch/100/lineitem.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.lineitem FROM 'file:///data/tpch/100/lineitem.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_nation() {
-  snow sql -q "COPY INTO demo.embucket.nation FROM 'file:///storage/tpch/100/nation.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.nation FROM 'file:///data/tpch/100/nation.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_region() {
-  snow sql -q "COPY INTO demo.embucket.region FROM 'file:///storage/tpch/100/region.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.region FROM 'file:///data/tpch/100/region.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_part() {
-  snow sql -q "COPY INTO demo.embucket.part FROM 'file:///storage/tpch/100/part.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.part FROM 'file:///data/tpch/100/part.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_supplier() {
-  snow sql -q "COPY INTO demo.embucket.supplier FROM 'file:///storage/tpch/100/supplier.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.supplier FROM 'file:///data/tpch/100/supplier.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_partsupp() {
-  snow sql -q "COPY INTO demo.embucket.partsupp FROM 'file:///storage/tpch/100/partsupp.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.partsupp FROM 'file:///data/tpch/100/partsupp.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_tables() {
@@ -174,35 +171,35 @@ tpch_setup() {
 }
 
 tpch_copy_into_customer_file() {
-  snow sql -q "COPY INTO demo.embucket.customer FROM 'file://$(pwd)/tpch/100/customer.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.customer FROM 'file://$(pwd)/data/tpch/100/customer.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_orders_file() {
-  snow sql -q "COPY INTO demo.embucket.orders FROM 'file://$(pwd)/tpch/100/orders.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.orders FROM 'file://$(pwd)/data/tpch/100/orders.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_lineitem_file() {
-  snow sql -q "COPY INTO demo.embucket.lineitem FROM 'file://$(pwd)/tpch/100/lineitem.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.lineitem FROM 'file://$(pwd)/data/tpch/100/lineitem.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_nation_file() {
-  snow sql -q "COPY INTO demo.embucket.nation FROM 'file://$(pwd)/tpch/100/nation.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.nation FROM 'file://$(pwd)/data/tpch/100/nation.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_region_file() {
-  snow sql -q "COPY INTO demo.embucket.region FROM 'file://$(pwd)/tpch/100/region.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.region FROM 'file://$(pwd)/data/tpch/100/region.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_part_file() {
-  snow sql -q "COPY INTO demo.embucket.part FROM 'file://$(pwd)/tpch/100/part.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.part FROM 'file://$(pwd)/data/tpch/100/part.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_supplier_file() {
-  snow sql -q "COPY INTO demo.embucket.supplier FROM 'file://$(pwd)/tpch/100/supplier.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.supplier FROM 'file://$(pwd)/data/tpch/100/supplier.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_partsupp_file() {
-  snow sql -q "COPY INTO demo.embucket.partsupp FROM 'file://$(pwd)/tpch/100/partsupp.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO demo.embucket.partsupp FROM 'file://$(pwd)/data/tpch/100/partsupp.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 }
 
 tpch_copy_into_tables_file() {

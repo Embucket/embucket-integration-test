@@ -1,6 +1,4 @@
-clickbench/single
-clickbench/partitioned
-tpch/100
+data/
 venv/
 storage/
 .cli_version.cache

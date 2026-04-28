@@ -119,6 +119,6 @@ snowsql "CREATE TABLE demo.embucket.source
     CLID INTEGER NOT NULL
 );"
 
-snowsql "COPY INTO demo.embucket.source FROM 'file:///storage/clickbench/partitioned/hits_1.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
+snowsql "COPY INTO demo.embucket.source FROM 'file:///data/clickbench/partitioned/hits_1.parquet' STORAGE_INTEGRATION = local FILE_FORMAT = (TYPE = PARQUET);"
 
 snowsql "MERGE INTO demo.embucket.hits target USING demo.embucket.source source ON target.watchid = source.watchid WHEN MATCHED THEN UPDATE SET eventdate = source.eventdate + 365 WHEN NOT MATCHED THEN INSERT (watchid, eventdate) VALUES (source.watchid, source.eventdate);"
