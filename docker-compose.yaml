@@ -51,112 +51,104 @@ services:
   #     \" > /opt/spark/conf/spark-defaults.conf && ./entrypoint.sh notebook
   #     "
   embucket:
-    image: embucket/embucket
+    image: embucket/rustice
     container_name: embucket
-    depends_on:
-      mc:
-        condition: service_healthy
     networks:
       iceberg_net:
     ports:
       - 3000:3000
       - 8080:8080
     environment:
-      - OBJECT_STORE_BACKEND=s3
-      - SLATEDB_PREFIX=data/
-      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_REGION=us-east-2
-      - S3_BUCKET=mybucket
-      - S3_ENDPOINT=http://warehouse.minio:9000
-      - S3_ALLOW_HTTP=true
-      - CATALOG_URL=http://embucket:3000/catalog
+      - CATALOG_URL=file:///warehouse
+      - BUCKET_HOST=0.0.0.0
+      - BUCKET_PORT=3000
+      - JWT_SECRET=63f4945d921d599f27ae4fdf5bada3f1
       - RUST_LOG=info
       - DATAFUSION_EXPLAIN_SHOW_STATISTICS=true
     volumes:
-      - tmp_data:/tmp
+      - warehouse_data:/warehouse
       - ./clickbench/partitioned:/storage/clickbench/partitioned
       - ./clickbench/single:/storage/clickbench/single
       - ./tpch/100:/storage/tpch/100
       - ./snowplow/source:/storage/snowplow/source
       - ./snowplow/expected:/storage/snowplow/expected
-  minio:
-    image: minio/minio
-    container_name: minio
-    environment:
-      - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
-      - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    volumes:
-      - warehouse_data:/warehouse
-    networks:
-      iceberg_net:
-    command: ['server', '/warehouse', '--console-address', ':9001']
-  toxiproxy:
-    image: ghcr.io/shopify/toxiproxy:2.5.0
-    container_name: toxiproxy
-    depends_on:
-      - minio
-    networks:
-      iceberg_net:
-        aliases:
-          - warehouse.minio
-    ports:
-      - 8474:8474  # Toxiproxy API
-      - 9000:9000  # Proxied MinIO API
-      - 9001:9001  # Proxied MinIO Console
-  toxiproxy-config:
-    image: curlimages/curl:latest
-    container_name: toxiproxy-config
-    depends_on:
-      - toxiproxy
-    networks:
-      - iceberg_net
-    restart: "no"
-    command:
-      - sh
-      - -c
-      - |
-        echo 'Waiting for Toxiproxy to be ready...'
-        until curl -s http://toxiproxy:8474/version; do sleep 1; done
-        echo 'Toxiproxy is ready, configuring proxies...'
-
-        curl -X POST http://toxiproxy:8474/proxies -H 'Content-Type: application/json' -d '{"name":"minio-api","listen":"0.0.0.0:9000","upstream":"minio:9000"}'
-
-        curl -X POST http://toxiproxy:8474/proxies -H 'Content-Type: application/json' -d '{"name":"minio-console","listen":"0.0.0.0:9001","upstream":"minio:9001"}'
-
-        echo 'Adding latency toxic to minio-api proxy...'
-        curl -X POST http://toxiproxy:8474/proxies/minio-api/toxics -H 'Content-Type: application/json' -d '{"name":"latency","type":"latency","attributes":{"latency":20,"jitter":5}}'
-
-        echo 'Toxiproxy configuration completed!'
-  mc:
-    depends_on:
-      - toxiproxy-config
-    image: minio/mc
-    container_name: mc
-    networks:
-      iceberg_net:
-    environment:
-      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_REGION=us-east-2
-    entrypoint: >
-      /bin/sh -c "
-      until (/usr/bin/mc alias set minio http://warehouse.minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY) do echo '...waiting...' && sleep 1; done;
-      /usr/bin/mc rm -r --force minio/mybucket;
-      /usr/bin/mc mb minio/mybucket;
-      /usr/bin/mc anonymous set public minio/mybucket;
-      tail -f /dev/null
-      "
-    healthcheck:
-      test: ['CMD', '/usr/bin/mc', 'ls', 'minio/mybucket']
-      interval: 10s
-      timeout: 5s
-      retries: 3
+  # minio:
+  #   image: minio/minio
+  #   container_name: minio
+  #   environment:
+  #     - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
+  #     - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+  #   volumes:
+  #     - warehouse_data:/warehouse
+  #   networks:
+  #     iceberg_net:
+  #   command: ['server', '/warehouse', '--console-address', ':9001']
+  # toxiproxy:
+  #   image: ghcr.io/shopify/toxiproxy:2.5.0
+  #   container_name: toxiproxy
+  #   depends_on:
+  #     - minio
+  #   networks:
+  #     iceberg_net:
+  #       aliases:
+  #         - warehouse.minio
+  #   ports:
+  #     - 8474:8474  # Toxiproxy API
+  #     - 9000:9000  # Proxied MinIO API
+  #     - 9001:9001  # Proxied MinIO Console
+  # toxiproxy-config:
+  #   image: curlimages/curl:latest
+  #   container_name: toxiproxy-config
+  #   depends_on:
+  #     - toxiproxy
+  #   networks:
+  #     - iceberg_net
+  #   restart: "no"
+  #   command:
+  #     - sh
+  #     - -c
+  #     - |
+  #       echo 'Waiting for Toxiproxy to be ready...'
+  #       until curl -s http://toxiproxy:8474/version; do sleep 1; done
+  #       echo 'Toxiproxy is ready, configuring proxies...'
+  #
+  #       curl -X POST http://toxiproxy:8474/proxies -H 'Content-Type: application/json' -d '{"name":"minio-api","listen":"0.0.0.0:9000","upstream":"minio:9000"}'
+  #
+  #       curl -X POST http://toxiproxy:8474/proxies -H 'Content-Type: application/json' -d '{"name":"minio-console","listen":"0.0.0.0:9001","upstream":"minio:9001"}'
+  #
+  #       echo 'Adding latency toxic to minio-api proxy...'
+  #       curl -X POST http://toxiproxy:8474/proxies/minio-api/toxics -H 'Content-Type: application/json' -d '{"name":"latency","type":"latency","attributes":{"latency":20,"jitter":5}}'
+  #
+  #       echo 'Toxiproxy configuration completed!'
+  # mc:
+  #   depends_on:
+  #     - toxiproxy-config
+  #   image: minio/mc
+  #   container_name: mc
+  #   networks:
+  #     iceberg_net:
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+  #     - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+  #     - AWS_REGION=us-east-2
+  #   entrypoint: >
+  #     /bin/sh -c "
+  #     until (/usr/bin/mc alias set minio http://warehouse.minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY) do echo '...waiting...' && sleep 1; done;
+  #     /usr/bin/mc rm -r --force minio/mybucket;
+  #     /usr/bin/mc mb minio/mybucket;
+  #     /usr/bin/mc anonymous set public minio/mybucket;
+  #     tail -f /dev/null
+  #     "
+  #   healthcheck:
+  #     test: ['CMD', '/usr/bin/mc', 'ls', 'minio/mybucket']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
 volumes:
   warehouse_data:
-  notebooks_data:
-  spark_events:
-  tmp_data:
+  # notebooks_data:
+  # spark_events:
+  # tmp_data:
 
 networks:
   iceberg_net:

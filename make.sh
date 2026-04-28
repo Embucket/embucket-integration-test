@@ -104,6 +104,10 @@ schema() {
   snow sql -q "CREATE SCHEMA demo.embucket;"
 }
 
+schema_fc() {
+  snow sql -q "CREATE SCHEMA IF NOT EXISTS embucket.public;"
+}
+
 setup() {
   volume
   volume_local
