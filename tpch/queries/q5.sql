@@ -4,12 +4,12 @@ select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
 from
-	demo.embucket.customer,
-	demo.embucket.orders,
-	demo.embucket.lineitem,
-	demo.embucket.supplier,
-	demo.embucket.nation,
-	demo.embucket.region
+	embucket.tpch.customer,
+	embucket.tpch.orders,
+	embucket.tpch.lineitem,
+	embucket.tpch.supplier,
+	embucket.tpch.nation,
+	embucket.tpch.region
 where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey

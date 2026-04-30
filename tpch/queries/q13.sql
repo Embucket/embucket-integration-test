@@ -9,7 +9,7 @@ from
 			c_custkey,
 			count(o_orderkey)
 		from
-			demo.embucket.customer left outer join demo.embucket.orders on
+			embucket.tpch.customer left outer join embucket.tpch.orders on
 				c_custkey = o_custkey
 				and o_comment not like '%express%requests%'
 		group by

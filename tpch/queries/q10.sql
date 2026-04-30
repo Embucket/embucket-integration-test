@@ -10,10 +10,10 @@ select
 	c_phone,
 	c_comment
 from
-	demo.embucket.customer,
-	demo.embucket.orders,
-	demo.embucket.lineitem,
-	demo.embucket.nation
+	embucket.tpch.customer,
+	embucket.tpch.orders,
+	embucket.tpch.lineitem,
+	embucket.tpch.nation
 where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey

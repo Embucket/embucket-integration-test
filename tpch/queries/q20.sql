@@ -4,20 +4,20 @@ select
 	s_name,
 	s_address
 from
-	demo.embucket.supplier,
-	demo.embucket.nation
+	embucket.tpch.supplier,
+	embucket.tpch.nation
 where
 	s_suppkey in (
 		select
 			ps_suppkey
 		from
-			demo.embucket.partsupp
+			embucket.tpch.partsupp
 		where
 			ps_partkey in (
 				select
 					p_partkey
 				from
-					demo.embucket.part
+					embucket.tpch.part
 				where
 					p_name like 'blanched%'
 			)
@@ -25,7 +25,7 @@ where
 				select
 					0.5 * sum(l_quantity)
 				from
-					demo.embucket.lineitem
+					embucket.tpch.lineitem
 				where
 					l_partkey = ps_partkey
 					and l_suppkey = ps_suppkey

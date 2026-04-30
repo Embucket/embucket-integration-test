@@ -13,14 +13,14 @@ from
 			l_extendedprice * (1 - l_discount) as volume,
 			n2.n_name as nation
 		from
-			demo.embucket.part,
-			demo.embucket.supplier,
-			demo.embucket.lineitem,
-			demo.embucket.orders,
-			demo.embucket.customer,
-			demo.embucket.nation n1,
-			demo.embucket.nation n2,
-			demo.embucket.region
+			embucket.tpch.part,
+			embucket.tpch.supplier,
+			embucket.tpch.lineitem,
+			embucket.tpch.orders,
+			embucket.tpch.customer,
+			embucket.tpch.nation n1,
+			embucket.tpch.nation n2,
+			embucket.tpch.region
 		where
 			p_partkey = l_partkey
 			and s_suppkey = l_suppkey

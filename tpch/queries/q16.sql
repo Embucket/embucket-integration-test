@@ -6,8 +6,8 @@ select
 	p_size,
 	count(distinct ps_suppkey) as supplier_cnt
 from
-	demo.embucket.partsupp,
-	demo.embucket.part
+	embucket.tpch.partsupp,
+	embucket.tpch.part
 where
 	p_partkey = ps_partkey
 	and p_brand <> 'Brand#14'
@@ -17,7 +17,7 @@ where
 		select
 			s_suppkey
 		from
-			demo.embucket.supplier
+			embucket.tpch.supplier
 		where
 			s_comment like '%Customer%Complaints%'
 	)

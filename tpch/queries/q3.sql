@@ -6,9 +6,9 @@ select
 	o_orderdate,
 	o_shippriority
 from
-	demo.embucket.customer,
-	demo.embucket.orders,
-	demo.embucket.lineitem
+	embucket.tpch.customer,
+	embucket.tpch.orders,
+	embucket.tpch.lineitem
 where
 	c_mktsegment = 'BUILDING'
 	and c_custkey = o_custkey

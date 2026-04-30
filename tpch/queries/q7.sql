@@ -13,12 +13,12 @@ from
 			extract(year from l_shipdate) as l_year,
 			l_extendedprice * (1 - l_discount) as volume
 		from
-			demo.embucket.supplier,
-			demo.embucket.lineitem,
-			demo.embucket.orders,
-			demo.embucket.customer,
-			demo.embucket.nation n1,
-			demo.embucket.nation n2
+			embucket.tpch.supplier,
+			embucket.tpch.lineitem,
+			embucket.tpch.orders,
+			embucket.tpch.customer,
+			embucket.tpch.nation n1,
+			embucket.tpch.nation n2
 		where
 			s_suppkey = l_suppkey
 			and o_orderkey = l_orderkey

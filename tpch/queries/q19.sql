@@ -3,8 +3,8 @@
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
-	demo.embucket.lineitem,
-	demo.embucket.part
+	embucket.tpch.lineitem,
+	embucket.tpch.part
 where
 	(
 		p_partkey = l_partkey

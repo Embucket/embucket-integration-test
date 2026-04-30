@@ -4,10 +4,10 @@ select
 	s_name,
 	count(*) as numwait
 from
-	demo.embucket.supplier,
-	demo.embucket.lineitem l1,
-	demo.embucket.orders,
-	demo.embucket.nation
+	embucket.tpch.supplier,
+	embucket.tpch.lineitem l1,
+	embucket.tpch.orders,
+	embucket.tpch.nation
 where
 	s_suppkey = l1.l_suppkey
 	and o_orderkey = l1.l_orderkey
@@ -17,7 +17,7 @@ where
 		select
 			*
 		from
-			demo.embucket.lineitem l2
+			embucket.tpch.lineitem l2
 		where
 			l2.l_orderkey = l1.l_orderkey
 			and l2.l_suppkey <> l1.l_suppkey
@@ -26,7 +26,7 @@ where
 		select
 			*
 		from
-			demo.embucket.lineitem l3
+			embucket.tpch.lineitem l3
 		where
 			l3.l_orderkey = l1.l_orderkey
 			and l3.l_suppkey <> l1.l_suppkey

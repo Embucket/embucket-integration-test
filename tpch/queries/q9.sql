@@ -11,12 +11,12 @@ from
 			extract(year from o_orderdate) as o_year,
 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
 		from
-			demo.embucket.part,
-			demo.embucket.supplier,
-			demo.embucket.lineitem,
-			demo.embucket.partsupp,
-			demo.embucket.orders,
-			demo.embucket.nation
+			embucket.tpch.part,
+			embucket.tpch.supplier,
+			embucket.tpch.lineitem,
+			embucket.tpch.partsupp,
+			embucket.tpch.orders,
+			embucket.tpch.nation
 		where
 			s_suppkey = l_suppkey
 			and ps_suppkey = l_suppkey

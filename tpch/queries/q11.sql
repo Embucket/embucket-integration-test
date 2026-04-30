@@ -4,9 +4,9 @@ select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
 from
-	demo.embucket.partsupp,
-	demo.embucket.supplier,
-	demo.embucket.nation
+	embucket.tpch.partsupp,
+	embucket.tpch.supplier,
+	embucket.tpch.nation
 where
 	ps_suppkey = s_suppkey
 	and s_nationkey = n_nationkey
@@ -17,9 +17,9 @@ group by
 			select
 				sum(ps_supplycost * ps_availqty) * 0.0001000000
 			from
-				demo.embucket.partsupp,
-				demo.embucket.supplier,
-				demo.embucket.nation
+				embucket.tpch.partsupp,
+				embucket.tpch.supplier,
+				embucket.tpch.nation
 			where
 				ps_suppkey = s_suppkey
 				and s_nationkey = n_nationkey

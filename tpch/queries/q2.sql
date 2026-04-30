@@ -10,11 +10,11 @@ select
 	s_phone,
 	s_comment
 from
-	demo.embucket.part,
-	demo.embucket.supplier,
-	demo.embucket.partsupp,
-	demo.embucket.nation,
-	demo.embucket.region
+	embucket.tpch.part,
+	embucket.tpch.supplier,
+	embucket.tpch.partsupp,
+	embucket.tpch.nation,
+	embucket.tpch.region
 where
 	p_partkey = ps_partkey
 	and s_suppkey = ps_suppkey
@@ -27,10 +27,10 @@ where
 		select
 			min(ps_supplycost)
 		from
-			demo.embucket.partsupp,
-			demo.embucket.supplier,
-			demo.embucket.nation,
-			demo.embucket.region
+			embucket.tpch.partsupp,
+			embucket.tpch.supplier,
+			embucket.tpch.nation,
+			embucket.tpch.region
 		where
 			p_partkey = ps_partkey
 			and s_suppkey = ps_suppkey

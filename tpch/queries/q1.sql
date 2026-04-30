@@ -12,7 +12,7 @@ select
 	avg(l_discount) as avg_disc,
 	count(*) as count_order
 from
-	demo.embucket.lineitem
+	embucket.tpch.lineitem
 where
 	l_shipdate <= date '1998-12-01' - interval '68 days'
 group by

@@ -4,7 +4,7 @@ select
 	o_orderpriority,
 	count(*) as order_count
 from
-	demo.embucket.orders
+	embucket.tpch.orders
 where
 	o_orderdate >= date '1995-04-01'
 	and o_orderdate < date '1995-04-01' + interval '3' month
@@ -12,7 +12,7 @@ where
 		select
 			*
 		from
-			demo.embucket.lineitem
+			embucket.tpch.lineitem
 		where
 			l_orderkey = o_orderkey
 			and l_commitdate < l_receiptdate

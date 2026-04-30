@@ -8,15 +8,15 @@ select
 	o_totalprice,
 	sum(l_quantity)
 from
-	demo.embucket.customer,
-	demo.embucket.lineitem,
-	demo.embucket.orders
+	embucket.tpch.customer,
+	embucket.tpch.lineitem,
+	embucket.tpch.orders
 where
 	o_orderkey in (
 		select
 			l_orderkey
 		from
-			demo.embucket.lineitem
+			embucket.tpch.lineitem
 		group by
 			l_orderkey having
 				sum(l_quantity) > 313

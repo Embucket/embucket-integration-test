@@ -3,7 +3,7 @@
 select
 	sum(l_extendedprice * l_discount) as revenue
 from
-	demo.embucket.lineitem
+	embucket.tpch.lineitem
 where
 	l_shipdate >= date '1994-01-01'
 	and l_shipdate < date '1994-01-01' + interval '1' year
