@@ -113,35 +113,35 @@ tpch_create_tables() {
 }
 
 tpch_copy_into_customer() {
-  snow sql -q "COPY INTO embucket.tpch.customer FROM 's3://embucket-testdata/tpch/1000/customer.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.customer FROM 's3://embucket-testdata/tpch/1000/customer.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_orders() {
-  snow sql -q "COPY INTO embucket.tpch.orders FROM 's3://embucket-testdata/tpch/1000/orders.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.orders FROM 's3://embucket-testdata/tpch/1000/orders.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_lineitem() {
-  snow sql -q "COPY INTO embucket.tpch.lineitem FROM 's3://embucket-testdata/tpch/1000/lineitem.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.lineitem FROM 's3://embucket-testdata/tpch/1000/lineitem.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_nation() {
-  snow sql -q "COPY INTO embucket.tpch.nation FROM 's3://embucket-testdata/tpch/1000/nation.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.nation FROM 's3://embucket-testdata/tpch/1000/nation.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_region() {
-  snow sql -q "COPY INTO embucket.tpch.region FROM 's3://embucket-testdata/tpch/1000/region.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.region FROM 's3://embucket-testdata/tpch/1000/region.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_part() {
-  snow sql -q "COPY INTO embucket.tpch.part FROM 's3://embucket-testdata/tpch/1000/part.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.part FROM 's3://embucket-testdata/tpch/1000/part.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_supplier() {
-  snow sql -q "COPY INTO embucket.tpch.supplier FROM 's3://embucket-testdata/tpch/1000/supplier.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.supplier FROM 's3://embucket-testdata/tpch/1000/supplier.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_partsupp() {
-  snow sql -q "COPY INTO embucket.tpch.partsupp FROM 's3://embucket-testdata/tpch/1000/partsupp.parquet' FILE_FORMAT = (TYPE = PARQUET);"
+  snow sql -q "COPY INTO embucket.tpch.partsupp FROM 's3://embucket-testdata/tpch/1000/partsupp.parquet' FILE_FORMAT = (TYPE = 'PARQUET');"
 }
 
 tpch_copy_into_tables() {
