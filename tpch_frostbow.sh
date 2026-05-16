@@ -26,7 +26,7 @@ tpch_create_customer_src() {
 }
 
 tpch_create_customer() {
-  echo "CREATE TABLE iceberg.tpch.customer (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.customer (
             C_CUSTKEY BIGINT NOT NULL,
             C_NAME VARCHAR NOT NULL,
             C_ADDRESS VARCHAR NOT NULL,
@@ -57,7 +57,7 @@ tpch_create_orders_src() {
 }
 
 tpch_create_orders() {
-  echo "CREATE TABLE iceberg.tpch.orders (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.orders (
             O_ORDERKEY BIGINT NOT NULL,
             O_CUSTKEY BIGINT NOT NULL,
             O_ORDERSTATUS CHAR NOT NULL,
@@ -96,7 +96,7 @@ tpch_create_lineitem_src() {
 }
 
 tpch_create_lineitem() {
-  echo "CREATE TABLE iceberg.tpch.lineitem (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.lineitem (
             L_ORDERKEY BIGINT NOT NULL,
             L_PARTKEY BIGINT NOT NULL,
             L_SUPPKEY BIGINT NOT NULL,
@@ -130,7 +130,7 @@ tpch_create_nation_src() {
 }
 
 tpch_create_nation() {
-  echo "CREATE TABLE iceberg.tpch.nation (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.nation (
             N_NATIONKEY INT NOT NULL,
             N_NAME VARCHAR NOT NULL,
             N_REGIONKEY INT NOT NULL,
@@ -151,7 +151,7 @@ tpch_create_region_src() {
 }
 
 tpch_create_region() {
-  echo "CREATE TABLE iceberg.tpch.region (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.region (
             R_REGIONKEY INT NOT NULL,
             R_NAME VARCHAR NOT NULL,
             R_COMMENT VARCHAR NOT NULL
@@ -177,7 +177,7 @@ tpch_create_part_src() {
 }
 
 tpch_create_part() {
-  echo "CREATE TABLE iceberg.tpch.part (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.part (
             P_PARTKEY BIGINT NOT NULL,
             P_NAME VARCHAR NOT NULL,
             P_MFGR VARCHAR NOT NULL,
@@ -207,7 +207,7 @@ tpch_create_supplier_src() {
 }
 
 tpch_create_supplier() {
-  echo "CREATE TABLE iceberg.tpch.supplier (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.supplier (
             S_SUPPKEY BIGINT NOT NULL,
             S_NAME VARCHAR NOT NULL,
             S_ADDRESS VARCHAR NOT NULL,
@@ -233,7 +233,7 @@ tpch_create_partsupp_src() {
 }
 
 tpch_create_partsupp() {
-  echo "CREATE TABLE iceberg.tpch.partsupp (
+  echo "CREATE EXTERNAL TABLE iceberg.tpch.partsupp (
             PS_PARTKEY BIGINT NOT NULL,
             PS_SUPPKEY BIGINT NOT NULL,
             PS_AVAILQTY BIGINT NOT NULL,
