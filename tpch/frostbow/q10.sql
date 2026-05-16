@@ -10,10 +10,10 @@ select
 	c_phone,
 	c_comment
 from
-	iceberg.tpch.customer,
-	iceberg.tpch.orders,
-	iceberg.tpch.lineitem,
-	iceberg.tpch.nation
+	warehouse.tpch.customer,
+	warehouse.tpch.orders,
+	warehouse.tpch.lineitem,
+	warehouse.tpch.nation
 where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey

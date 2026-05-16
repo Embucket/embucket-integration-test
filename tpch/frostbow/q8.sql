@@ -13,14 +13,14 @@ from
 			l_extendedprice * (1 - l_discount) as volume,
 			n2.n_name as nation
 		from
-			iceberg.tpch.part,
-			iceberg.tpch.supplier,
-			iceberg.tpch.lineitem,
-			iceberg.tpch.orders,
-			iceberg.tpch.customer,
-			iceberg.tpch.nation n1,
-			iceberg.tpch.nation n2,
-			iceberg.tpch.region
+			warehouse.tpch.part,
+			warehouse.tpch.supplier,
+			warehouse.tpch.lineitem,
+			warehouse.tpch.orders,
+			warehouse.tpch.customer,
+			warehouse.tpch.nation n1,
+			warehouse.tpch.nation n2,
+			warehouse.tpch.region
 		where
 			p_partkey = l_partkey
 			and s_suppkey = l_suppkey

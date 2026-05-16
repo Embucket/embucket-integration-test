@@ -3,8 +3,8 @@
 select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
-	iceberg.tpch.lineitem,
-	iceberg.tpch.part
+	warehouse.tpch.lineitem,
+	warehouse.tpch.part
 where
 	(
 		p_partkey = l_partkey

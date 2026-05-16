@@ -4,10 +4,10 @@ select
 	s_name,
 	count(*) as numwait
 from
-	iceberg.tpch.supplier,
-	iceberg.tpch.lineitem l1,
-	iceberg.tpch.orders,
-	iceberg.tpch.nation
+	warehouse.tpch.supplier,
+	warehouse.tpch.lineitem l1,
+	warehouse.tpch.orders,
+	warehouse.tpch.nation
 where
 	s_suppkey = l1.l_suppkey
 	and o_orderkey = l1.l_orderkey
@@ -17,7 +17,7 @@ where
 		select
 			*
 		from
-			iceberg.tpch.lineitem l2
+			warehouse.tpch.lineitem l2
 		where
 			l2.l_orderkey = l1.l_orderkey
 			and l2.l_suppkey <> l1.l_suppkey
@@ -26,7 +26,7 @@ where
 		select
 			*
 		from
-			iceberg.tpch.lineitem l3
+			warehouse.tpch.lineitem l3
 		where
 			l3.l_orderkey = l1.l_orderkey
 			and l3.l_suppkey <> l1.l_suppkey

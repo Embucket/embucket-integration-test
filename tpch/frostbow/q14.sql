@@ -7,8 +7,8 @@ select
 		else 0
 	end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
 from
-	iceberg.tpch.lineitem,
-	iceberg.tpch.part
+	warehouse.tpch.lineitem,
+	warehouse.tpch.part
 where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1995-02-01'

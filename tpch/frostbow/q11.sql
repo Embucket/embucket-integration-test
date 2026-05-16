@@ -4,9 +4,9 @@ select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
 from
-	iceberg.tpch.partsupp,
-	iceberg.tpch.supplier,
-	iceberg.tpch.nation
+	warehouse.tpch.partsupp,
+	warehouse.tpch.supplier,
+	warehouse.tpch.nation
 where
 	ps_suppkey = s_suppkey
 	and s_nationkey = n_nationkey
@@ -17,9 +17,9 @@ group by
 			select
 				sum(ps_supplycost * ps_availqty) * 0.0001000000
 			from
-				iceberg.tpch.partsupp,
-				iceberg.tpch.supplier,
-				iceberg.tpch.nation
+				warehouse.tpch.partsupp,
+				warehouse.tpch.supplier,
+				warehouse.tpch.nation
 			where
 				ps_suppkey = s_suppkey
 				and s_nationkey = n_nationkey

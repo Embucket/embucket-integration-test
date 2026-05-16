@@ -15,8 +15,8 @@ select
 		else 0
 	end) as low_line_count
 from
-	iceberg.tpch.orders,
-	iceberg.tpch.lineitem
+	warehouse.tpch.orders,
+	warehouse.tpch.lineitem
 where
 	o_orderkey = l_orderkey
 	and l_shipmode in ('FOB', 'SHIP')

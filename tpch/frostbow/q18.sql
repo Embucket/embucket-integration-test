@@ -8,15 +8,15 @@ select
 	o_totalprice,
 	sum(l_quantity)
 from
-	iceberg.tpch.customer,
-	iceberg.tpch.lineitem,
-	iceberg.tpch.orders
+	warehouse.tpch.customer,
+	warehouse.tpch.lineitem,
+	warehouse.tpch.orders
 where
 	o_orderkey in (
 		select
 			l_orderkey
 		from
-			iceberg.tpch.lineitem
+			warehouse.tpch.lineitem
 		group by
 			l_orderkey having
 				sum(l_quantity) > 313

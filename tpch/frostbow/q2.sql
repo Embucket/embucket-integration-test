@@ -10,11 +10,11 @@ select
 	s_phone,
 	s_comment
 from
-	iceberg.tpch.part,
-	iceberg.tpch.supplier,
-	iceberg.tpch.partsupp,
-	iceberg.tpch.nation,
-	iceberg.tpch.region
+	warehouse.tpch.part,
+	warehouse.tpch.supplier,
+	warehouse.tpch.partsupp,
+	warehouse.tpch.nation,
+	warehouse.tpch.region
 where
 	p_partkey = ps_partkey
 	and s_suppkey = ps_suppkey
@@ -27,10 +27,10 @@ where
 		select
 			min(ps_supplycost)
 		from
-			iceberg.tpch.partsupp,
-			iceberg.tpch.supplier,
-			iceberg.tpch.nation,
-			iceberg.tpch.region
+			warehouse.tpch.partsupp,
+			warehouse.tpch.supplier,
+			warehouse.tpch.nation,
+			warehouse.tpch.region
 		where
 			p_partkey = ps_partkey
 			and s_suppkey = ps_suppkey

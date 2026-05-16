@@ -9,7 +9,7 @@ RESULTS_CSV="tpch/results_frostbow.csv"
 MEM_GB=8
 
 tpch_create_schema() {
-  echo "CREATE SCHEMA IF NOT EXISTS iceberg.tpch;"
+  echo "CREATE SCHEMA IF NOT EXISTS warehouse.tpch;"
 }
 
 tpch_create_customer_src() {
@@ -26,7 +26,7 @@ tpch_create_customer_src() {
 }
 
 tpch_create_customer() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.customer (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.customer (
             C_CUSTKEY BIGINT NOT NULL,
             C_NAME VARCHAR NOT NULL,
             C_ADDRESS VARCHAR NOT NULL,
@@ -35,11 +35,11 @@ tpch_create_customer() {
             C_ACCTBAL DOUBLE NOT NULL,
             C_MKTSEGMENT VARCHAR NOT NULL,
             C_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/customer';"
 }
 
 tpch_insert_customer() {
-  echo "INSERT INTO iceberg.tpch.customer SELECT * FROM customer_src;"
+  echo "INSERT INTO warehouse.tpch.customer SELECT * FROM customer_src;"
 }
 
 tpch_create_orders_src() {
@@ -57,7 +57,7 @@ tpch_create_orders_src() {
 }
 
 tpch_create_orders() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.orders (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.orders (
             O_ORDERKEY BIGINT NOT NULL,
             O_CUSTKEY BIGINT NOT NULL,
             O_ORDERSTATUS CHAR NOT NULL,
@@ -67,11 +67,11 @@ tpch_create_orders() {
             O_CLERK VARCHAR NOT NULL,
             O_SHIPPRIORITY INTEGER NOT NULL,
             O_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/orders';"
 }
 
 tpch_insert_orders() {
-  echo "INSERT INTO iceberg.tpch.orders SELECT * FROM orders_src;"
+  echo "INSERT INTO warehouse.tpch.orders SELECT * FROM orders_src;"
 }
 
 tpch_create_lineitem_src() {
@@ -96,7 +96,7 @@ tpch_create_lineitem_src() {
 }
 
 tpch_create_lineitem() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.lineitem (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.lineitem (
             L_ORDERKEY BIGINT NOT NULL,
             L_PARTKEY BIGINT NOT NULL,
             L_SUPPKEY BIGINT NOT NULL,
@@ -113,11 +113,11 @@ tpch_create_lineitem() {
             L_SHIPINSTRUCT VARCHAR NOT NULL,
             L_SHIPMODE VARCHAR NOT NULL,
             L_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/lineitem';"
 }
 
 tpch_insert_lineitem() {
-  echo "INSERT INTO iceberg.tpch.lineitem SELECT * FROM lineitem_src;"
+  echo "INSERT INTO warehouse.tpch.lineitem SELECT * FROM lineitem_src;"
 }
 
 tpch_create_nation_src() {
@@ -130,16 +130,16 @@ tpch_create_nation_src() {
 }
 
 tpch_create_nation() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.nation (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.nation (
             N_NATIONKEY INT NOT NULL,
             N_NAME VARCHAR NOT NULL,
             N_REGIONKEY INT NOT NULL,
             N_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/nation';"
 }
 
 tpch_insert_nation() {
-  echo "INSERT INTO iceberg.tpch.nation SELECT * FROM nation_src;"
+  echo "INSERT INTO warehouse.tpch.nation SELECT * FROM nation_src;"
 }
 
 tpch_create_region_src() {
@@ -151,15 +151,15 @@ tpch_create_region_src() {
 }
 
 tpch_create_region() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.region (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.region (
             R_REGIONKEY INT NOT NULL,
             R_NAME VARCHAR NOT NULL,
             R_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/region';"
 }
 
 tpch_insert_region() {
-  echo "INSERT INTO iceberg.tpch.region SELECT * FROM region_src;"
+  echo "INSERT INTO warehouse.tpch.region SELECT * FROM region_src;"
 }
 
 tpch_create_part_src() {
@@ -177,7 +177,7 @@ tpch_create_part_src() {
 }
 
 tpch_create_part() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.part (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.part (
             P_PARTKEY BIGINT NOT NULL,
             P_NAME VARCHAR NOT NULL,
             P_MFGR VARCHAR NOT NULL,
@@ -187,11 +187,11 @@ tpch_create_part() {
             P_CONTAINER VARCHAR NOT NULL,
             P_RETAILPRICE DOUBLE NOT NULL,
             P_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/part';"
 }
 
 tpch_insert_part() {
-  echo "INSERT INTO iceberg.tpch.part SELECT * FROM part_src;"
+  echo "INSERT INTO warehouse.tpch.part SELECT * FROM part_src;"
 }
 
 tpch_create_supplier_src() {
@@ -207,7 +207,7 @@ tpch_create_supplier_src() {
 }
 
 tpch_create_supplier() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.supplier (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.supplier (
             S_SUPPKEY BIGINT NOT NULL,
             S_NAME VARCHAR NOT NULL,
             S_ADDRESS VARCHAR NOT NULL,
@@ -215,11 +215,11 @@ tpch_create_supplier() {
             S_PHONE VARCHAR NOT NULL,
             S_ACCTBAL DOUBLE NOT NULL,
             S_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/supplier';"
 }
 
 tpch_insert_supplier() {
-  echo "INSERT INTO iceberg.tpch.supplier SELECT * FROM supplier_src;"
+  echo "INSERT INTO warehouse.tpch.supplier SELECT * FROM supplier_src;"
 }
 
 tpch_create_partsupp_src() {
@@ -233,17 +233,17 @@ tpch_create_partsupp_src() {
 }
 
 tpch_create_partsupp() {
-  echo "CREATE EXTERNAL TABLE iceberg.tpch.partsupp (
+  echo "CREATE EXTERNAL TABLE warehouse.tpch.partsupp (
             PS_PARTKEY BIGINT NOT NULL,
             PS_SUPPKEY BIGINT NOT NULL,
             PS_AVAILQTY BIGINT NOT NULL,
             PS_SUPPLYCOST DOUBLE NOT NULL,
             PS_COMMENT VARCHAR NOT NULL
-        ) STORED AS ICEBERG LOCATION '';"
+        ) STORED AS ICEBERG LOCATION '${CATALOG_URL}/warehouse/tpch/partsupp';"
 }
 
 tpch_insert_partsupp() {
-  echo "INSERT INTO iceberg.tpch.partsupp SELECT * FROM partsupp_src;"
+  echo "INSERT INTO warehouse.tpch.partsupp SELECT * FROM partsupp_src;"
 }
 
 tpch_write_setup() {
@@ -268,7 +268,7 @@ generate_queries() {
   for src in tpch/df/*.sql; do
     [[ -f "$src" ]] || continue
     base=$(basename "$src")
-    sed -E 's/(^|[^a-zA-Z0-9_])tpch\.([a-zA-Z_]+)/\1iceberg.tpch.\2/g' "$src" >"$QUERIES_DIR/$base"
+    sed -E 's/(^|[^a-zA-Z0-9_])tpch\.([a-zA-Z_]+)/\1warehouse.tpch.\2/g' "$src" >"$QUERIES_DIR/$base"
   done
 }
 

@@ -4,20 +4,20 @@ select
 	s_name,
 	s_address
 from
-	iceberg.tpch.supplier,
-	iceberg.tpch.nation
+	warehouse.tpch.supplier,
+	warehouse.tpch.nation
 where
 	s_suppkey in (
 		select
 			ps_suppkey
 		from
-			iceberg.tpch.partsupp
+			warehouse.tpch.partsupp
 		where
 			ps_partkey in (
 				select
 					p_partkey
 				from
-					iceberg.tpch.part
+					warehouse.tpch.part
 				where
 					p_name like 'blanched%'
 			)
@@ -25,7 +25,7 @@ where
 				select
 					0.5 * sum(l_quantity)
 				from
-					iceberg.tpch.lineitem
+					warehouse.tpch.lineitem
 				where
 					l_partkey = ps_partkey
 					and l_suppkey = ps_suppkey

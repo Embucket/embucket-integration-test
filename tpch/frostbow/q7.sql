@@ -13,12 +13,12 @@ from
 			extract(year from l_shipdate) as l_year,
 			l_extendedprice * (1 - l_discount) as volume
 		from
-			iceberg.tpch.supplier,
-			iceberg.tpch.lineitem,
-			iceberg.tpch.orders,
-			iceberg.tpch.customer,
-			iceberg.tpch.nation n1,
-			iceberg.tpch.nation n2
+			warehouse.tpch.supplier,
+			warehouse.tpch.lineitem,
+			warehouse.tpch.orders,
+			warehouse.tpch.customer,
+			warehouse.tpch.nation n1,
+			warehouse.tpch.nation n2
 		where
 			s_suppkey = l_suppkey
 			and o_orderkey = l_orderkey

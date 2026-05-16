@@ -6,9 +6,9 @@ select
 	o_orderdate,
 	o_shippriority
 from
-	iceberg.tpch.customer,
-	iceberg.tpch.orders,
-	iceberg.tpch.lineitem
+	warehouse.tpch.customer,
+	warehouse.tpch.orders,
+	warehouse.tpch.lineitem
 where
 	c_mktsegment = 'BUILDING'
 	and c_custkey = o_custkey

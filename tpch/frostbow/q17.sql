@@ -3,8 +3,8 @@
 select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
-	iceberg.tpch.lineitem,
-	iceberg.tpch.part
+	warehouse.tpch.lineitem,
+	warehouse.tpch.part
 where
 	p_partkey = l_partkey
 	and p_brand = 'Brand#42'
@@ -13,7 +13,7 @@ where
 		select
 			0.2 * avg(l_quantity)
 		from
-			iceberg.tpch.lineitem
+			warehouse.tpch.lineitem
 		where
 			l_partkey = p_partkey
 	);

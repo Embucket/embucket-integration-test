@@ -10,7 +10,7 @@ from
 			substring(c_phone from 1 for 2) as cntrycode,
 			c_acctbal
 		from
-			iceberg.tpch.customer
+			warehouse.tpch.customer
 		where
 			substring(c_phone from 1 for 2) in
 				('24', '34', '16', '30', '33', '14', '13')
@@ -18,7 +18,7 @@ from
 				select
 					avg(c_acctbal)
 				from
-					iceberg.tpch.customer
+					warehouse.tpch.customer
 				where
 					c_acctbal > 0.00
 					and substring(c_phone from 1 for 2) in
@@ -28,7 +28,7 @@ from
 				select
 					*
 				from
-					iceberg.tpch.orders
+					warehouse.tpch.orders
 				where
 					o_custkey = c_custkey
 			)

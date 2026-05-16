@@ -9,7 +9,7 @@ from
 			c_custkey,
 			count(o_orderkey)
 		from
-			iceberg.tpch.customer left outer join iceberg.tpch.orders on
+			warehouse.tpch.customer left outer join warehouse.tpch.orders on
 				c_custkey = o_custkey
 				and o_comment not like '%express%requests%'
 		group by

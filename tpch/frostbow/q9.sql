@@ -11,12 +11,12 @@ from
 			extract(year from o_orderdate) as o_year,
 			l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity as amount
 		from
-			iceberg.tpch.part,
-			iceberg.tpch.supplier,
-			iceberg.tpch.lineitem,
-			iceberg.tpch.partsupp,
-			iceberg.tpch.orders,
-			iceberg.tpch.nation
+			warehouse.tpch.part,
+			warehouse.tpch.supplier,
+			warehouse.tpch.lineitem,
+			warehouse.tpch.partsupp,
+			warehouse.tpch.orders,
+			warehouse.tpch.nation
 		where
 			s_suppkey = l_suppkey
 			and ps_suppkey = l_suppkey

@@ -4,12 +4,12 @@ select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
 from
-	iceberg.tpch.customer,
-	iceberg.tpch.orders,
-	iceberg.tpch.lineitem,
-	iceberg.tpch.supplier,
-	iceberg.tpch.nation,
-	iceberg.tpch.region
+	warehouse.tpch.customer,
+	warehouse.tpch.orders,
+	warehouse.tpch.lineitem,
+	warehouse.tpch.supplier,
+	warehouse.tpch.nation,
+	warehouse.tpch.region
 where
 	c_custkey = o_custkey
 	and l_orderkey = o_orderkey

@@ -5,7 +5,7 @@ create view revenue0 (supplier_no, total_revenue) as
 		l_suppkey,
 		sum(l_extendedprice * (1 - l_discount))
 	from
-		iceberg.tpch.lineitem
+		warehouse.tpch.lineitem
 	where
 		l_shipdate >= date '1996-08-01'
 		and l_shipdate < date '1996-08-01' + interval '3' month
@@ -18,8 +18,8 @@ select
 	s_phone,
 	total_revenue
 from
-	iceberg.tpch.supplier,
-	iceberg.tpch.revenue0
+	warehouse.tpch.supplier,
+	warehouse.tpch.revenue0
 where
 	s_suppkey = supplier_no
 	and total_revenue = (

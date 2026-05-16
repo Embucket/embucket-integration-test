@@ -6,8 +6,8 @@ select
 	p_size,
 	count(distinct ps_suppkey) as supplier_cnt
 from
-	iceberg.tpch.partsupp,
-	iceberg.tpch.part
+	warehouse.tpch.partsupp,
+	warehouse.tpch.part
 where
 	p_partkey = ps_partkey
 	and p_brand <> 'Brand#14'
@@ -17,7 +17,7 @@ where
 		select
 			s_suppkey
 		from
-			iceberg.tpch.supplier
+			warehouse.tpch.supplier
 		where
 			s_comment like '%Customer%Complaints%'
 	)

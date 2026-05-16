@@ -4,7 +4,7 @@ select
 	o_orderpriority,
 	count(*) as order_count
 from
-	iceberg.tpch.orders
+	warehouse.tpch.orders
 where
 	o_orderdate >= date '1995-04-01'
 	and o_orderdate < date '1995-04-01' + interval '3' month
@@ -12,7 +12,7 @@ where
 		select
 			*
 		from
-			iceberg.tpch.lineitem
+			warehouse.tpch.lineitem
 		where
 			l_orderkey = o_orderkey
 			and l_commitdate < l_receiptdate
