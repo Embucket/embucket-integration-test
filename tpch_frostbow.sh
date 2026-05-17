@@ -1,12 +1,12 @@
 #!/bin/bash
 
 SRC_BUCKET="s3://embucket-testdata/tpch/1000"
-CATALOG_URL="s3://embucket-jan-temp/catalog/tpch"
+CATALOG_URL="s3://embucket-jan-temp/catalog"
 FROSTBOW_BIN="$HOME/frostbow"
 SETUP_SQL="/tmp/tpch_frostbow_setup.sql"
 QUERIES_DIR="tpch/frostbow"
 RESULTS_CSV="tpch/results_frostbow.csv"
-MEM_GB=8
+MEM_GB=32
 
 tpch_create_schema() {
   echo "CREATE SCHEMA IF NOT EXISTS warehouse.tpch;"
